@@ -1,4 +1,4 @@
--- Run once in Supabase Dashboard → SQL Editor
+-- Run in Supabase Dashboard → SQL Editor (safe to run more than once)
 
 create table if not exists public.entries (
   id          bigint generated always as identity primary key,
@@ -10,9 +10,12 @@ create table if not exists public.entries (
 
 alter table public.entries enable row level security;
 
--- The website may only INSERT. Nobody can read/edit/delete via the public key.
-create policy "public can insert"
-  on public.entries
-  for insert
-  to anon
-  with check (true);
+-- The website can add, list and edit notes (no delete).
+drop policy if exists "public can insert" on public.entries;
+create policy "public can insert" on public.entries for insert to anon with check (true);
+
+drop policy if exists "public can read" on public.entries;
+create policy "public can read" on public.entries for select to anon using (true);
+
+drop policy if exists "public can update" on public.entries;
+create policy "public can update" on public.entries for update to anon using (true) with check (true);

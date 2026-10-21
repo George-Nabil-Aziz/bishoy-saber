@@ -3,51 +3,206 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>إدخال البيانات</title>
+  <title>الملاحظات</title>
   <style>
-    body { font-family: system-ui, "Segoe UI", Tahoma, sans-serif; background: #f4f6f8; margin: 0; padding: 16px; }
-    .card { max-width: 480px; margin: 40px auto; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, "Segoe UI", Tahoma, sans-serif; background: #f4f6f8; margin: 0; color: #1f2937; }
+    .hidden { display: none !important; }
+
+    .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
     h1 { margin-top: 0; font-size: 22px; }
     label { display: block; margin: 14px 0 6px; font-weight: 600; }
-    input, textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #ccd; border-radius: 8px; font-size: 16px; font-family: inherit; }
-    textarea { min-height: 90px; resize: vertical; }
-    button { margin-top: 20px; width: 100%; padding: 12px; font-size: 17px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; cursor: pointer; }
-    button:disabled { opacity: .6; cursor: wait; }
-    #msg { margin-top: 14px; text-align: center; min-height: 1.2em; }
+    input, textarea { width: 100%; padding: 10px; border: 1px solid #ccd; border-radius: 8px; font-size: 16px; font-family: inherit; }
+    textarea { min-height: 120px; resize: vertical; }
+    button { font-family: inherit; cursor: pointer; }
+    .btn { margin-top: 20px; width: 100%; padding: 12px; font-size: 17px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; }
+    .btn:disabled { opacity: .6; cursor: wait; }
+    .msg { margin-top: 14px; text-align: center; min-height: 1.2em; }
     .ok { color: #15803d; } .err { color: #b91c1c; }
+
+    /* Login */
+    #login { max-width: 400px; margin: 60px auto; padding: 0 16px; }
+    .persona-title { margin: 28px 0 10px; font-size: 14px; color: #6b7280; text-align: center; }
+    .persona { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; text-align: right; }
+    .persona:hover { border-color: #2563eb; background: #eff6ff; }
+    .avatar { width: 42px; height: 42px; border-radius: 50%; background: #2563eb; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+    .persona small { display: block; color: #6b7280; direction: ltr; text-align: right; }
+
+    /* App */
+    #app { display: flex; min-height: 100vh; }
+    aside { width: 200px; background: #1f2937; color: #fff; padding: 20px 12px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+    aside .who { font-size: 14px; color: #9ca3af; margin: 0 8px 16px; }
+    aside a { color: #e5e7eb; text-decoration: none; padding: 10px 12px; border-radius: 8px; }
+    aside a:hover { background: #374151; }
+    aside a.active { background: #2563eb; color: #fff; }
+    aside .logout { margin-top: auto; background: none; border: 1px solid #4b5563; color: #e5e7eb; padding: 8px; border-radius: 8px; }
+    main { flex: 1; padding: 24px 16px; }
+    main .card { max-width: 560px; margin: 0 auto; }
+
+    #list { list-style: none; padding: 0; margin: 0; }
+    #list li a { display: flex; justify-content: space-between; gap: 12px; padding: 12px; border-bottom: 1px solid #eee; color: inherit; text-decoration: none; }
+    #list li a:hover { background: #f9fafb; }
+    #list .date { color: #9ca3af; font-size: 13px; white-space: nowrap; }
+
+    @media (max-width: 600px) {
+      #app { flex-direction: column; }
+      aside { width: 100%; flex-direction: row; align-items: center; padding: 10px; }
+      aside .who { display: none; }
+      aside .logout { margin-top: 0; margin-right: auto; }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>إدخال البيانات</h1>
-    <form id="form">
-      <label for="title">العنوان</label>
-      <input id="title" name="title" type="text" required />
 
-      <label for="amount">الرقم</label>
-      <input id="amount" name="amount" type="number" step="any" required />
+  <!-- Login -->
+  <div id="login">
+    <div class="card">
+      <h1>تسجيل الدخول</h1>
+      <form id="loginForm">
+        <label for="email">الإيميل</label>
+        <input id="email" type="email" required dir="ltr" />
+        <label for="password">الباسورد</label>
+        <input id="password" type="password" required dir="ltr" />
+        <button type="submit" class="btn">Login</button>
+        <div id="loginMsg" class="msg"></div>
+      </form>
+    </div>
 
-      <label for="notes">ملاحظات</label>
-      <textarea id="notes" name="notes"></textarea>
+    <div class="persona-title">اضغط على الاسم لملء البيانات</div>
+    <button type="button" class="persona" id="persona">
+      <span class="avatar">ب</span>
+      <span>
+        <strong>Bishoy Saber</strong>
+        <small>bishoy.saber@gmail.com</small>
+      </span>
+    </button>
+  </div>
 
-      <button type="submit" id="save">Save</button>
-      <div id="msg"></div>
-    </form>
+  <!-- App -->
+  <div id="app" class="hidden">
+    <aside>
+      <div class="who">Bishoy Saber</div>
+      <a href="#/add" data-nav="add">Add note</a>
+      <a href="#/history" data-nav="history">History</a>
+      <button type="button" class="logout" id="logout">خروج</button>
+    </aside>
+
+    <main>
+      <!-- Add / Edit -->
+      <div id="editor" class="card">
+        <h1 id="editorTitle">إضافة ملاحظة</h1>
+        <form id="form">
+          <label for="title">العنوان</label>
+          <input id="title" name="title" type="text" required />
+
+          <label for="amount">الرقم</label>
+          <input id="amount" name="amount" type="number" step="any" required />
+
+          <label for="notes">ملاحظات</label>
+          <textarea id="notes" name="notes"></textarea>
+
+          <button type="submit" class="btn" id="save">Save</button>
+          <div id="msg" class="msg"></div>
+        </form>
+      </div>
+
+      <!-- History -->
+      <div id="history" class="card hidden">
+        <h1>History</h1>
+        <ul id="list"></ul>
+        <div id="historyMsg" class="msg"></div>
+      </div>
+    </main>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
   <script>
+    const USER = { email: 'bishoy.saber@gmail.com', password: '123456789' };
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    const form = document.getElementById('form');
-    const btn = document.getElementById('save');
-    const msg = document.getElementById('msg');
+    const $ = (id) => document.getElementById(id);
+
+    // ---------- Login ----------
+    function isLoggedIn() {
+      try { return localStorage.getItem('loggedIn') === '1'; } catch { return false; }
+    }
+
+    $('persona').addEventListener('click', () => {
+      $('email').value = USER.email;
+      $('password').value = USER.password;
+    });
+
+    $('loginForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if ($('email').value.trim().toLowerCase() === USER.email && $('password').value === USER.password) {
+        try { localStorage.setItem('loggedIn', '1'); } catch {}
+        location.hash = '#/add';
+        render();
+      } else {
+        $('loginMsg').textContent = 'الإيميل أو الباسورد غلط';
+        $('loginMsg').className = 'msg err';
+      }
+    });
+
+    $('logout').addEventListener('click', () => {
+      try { localStorage.removeItem('loggedIn'); } catch {}
+      location.hash = '';
+      render();
+    });
+
+    // ---------- Routing: #/add, #/history, #/edit/<id> ----------
+    let editingId = null;
+
+    function render() {
+      const loggedIn = isLoggedIn();
+      $('login').classList.toggle('hidden', loggedIn);
+      $('app').classList.toggle('hidden', !loggedIn);
+      if (!loggedIn) return;
+
+      const [, page, id] = location.hash.split('/');
+      const view = page === 'history' ? 'history' : 'editor';
+      $('editor').classList.toggle('hidden', view !== 'editor');
+      $('history').classList.toggle('hidden', view !== 'history');
+      document.querySelectorAll('[data-nav]').forEach((a) =>
+        a.classList.toggle('active', a.dataset.nav === (page === 'history' ? 'history' : page === 'add' || !page ? 'add' : '')));
+
+      if (page === 'history') loadHistory();
+      else if (page === 'edit' && id) openEdit(id);
+      else openAdd();
+    }
+
+    window.addEventListener('hashchange', render);
+
+    // ---------- Add / Edit ----------
+    const form = $('form');
+
+    function setMsg(text, cls = '') { $('msg').textContent = text; $('msg').className = 'msg ' + cls; }
+
+    function openAdd() {
+      editingId = null;
+      $('editorTitle').textContent = 'إضافة ملاحظة';
+      form.reset();
+      setMsg('');
+    }
+
+    async function openEdit(id) {
+      editingId = null;
+      $('editorTitle').textContent = 'تعديل ملاحظة';
+      form.reset();
+      setMsg('جاري التحميل...');
+      const { data, error } = await db.from('entries').select('*').eq('id', id).single();
+      if (error) return setMsg('حصل خطأ: ' + error.message, 'err');
+      editingId = data.id;
+      form.title.value = data.title;
+      form.amount.value = data.amount;
+      form.notes.value = data.notes || '';
+      setMsg('');
+    }
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      btn.disabled = true;
-      msg.textContent = 'جاري الحفظ...';
-      msg.className = '';
+      $('save').disabled = true;
+      setMsg('جاري الحفظ...');
 
       const row = {
         title: form.title.value.trim(),
@@ -55,18 +210,50 @@
         notes: form.notes.value.trim() || null,
       };
 
-      const { error } = await db.from('entries').insert(row);
+      const { error } = editingId
+        ? await db.from('entries').update(row).eq('id', editingId)
+        : await db.from('entries').insert(row);
 
       if (error) {
-        msg.textContent = 'حصل خطأ: ' + error.message;
-        msg.className = 'err';
+        setMsg('حصل خطأ: ' + error.message, 'err');
       } else {
-        msg.textContent = 'تم الحفظ ✓';
-        msg.className = 'ok';
-        form.reset();
+        setMsg(editingId ? 'تم التعديل ✓' : 'تم الحفظ ✓', 'ok');
+        if (!editingId) form.reset();
       }
-      btn.disabled = false;
+      $('save').disabled = false;
     });
+
+    // ---------- History ----------
+    async function loadHistory() {
+      const list = $('list');
+      list.innerHTML = '';
+      $('historyMsg').textContent = 'جاري التحميل...';
+      $('historyMsg').className = 'msg';
+
+      const { data, error } = await db.from('entries').select('id, title, created_at').order('created_at', { ascending: false });
+      if (error) {
+        $('historyMsg').textContent = 'حصل خطأ: ' + error.message;
+        $('historyMsg').className = 'msg err';
+        return;
+      }
+      $('historyMsg').textContent = data.length ? '' : 'مافيش ملاحظات لسه';
+
+      for (const note of data) {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = '#/edit/' + note.id;
+        const title = document.createElement('span');
+        title.textContent = note.title;
+        const date = document.createElement('span');
+        date.className = 'date';
+        date.textContent = new Date(note.created_at).toLocaleDateString('ar-EG');
+        a.append(title, date);
+        li.append(a);
+        list.append(li);
+      }
+    }
+
+    render();
   </script>
 </body>
 </html>
