@@ -184,6 +184,14 @@
       <div id="users" class="card hidden">
         <h1 data-i18n="users"></h1>
         <form id="userForm" class="user-form" autocomplete="off">
+          <div class="full photo-pick">
+            <label for="uPhoto" class="photo-circle" id="uPreview" data-i18n-title="choosePhoto"></label>
+            <input id="uPhoto" type="file" accept="image/*" hidden />
+            <div>
+              <label for="uPhoto" class="photo-btn" data-i18n="choosePhoto"></label>
+              <small data-i18n="photoOptional"></small>
+            </div>
+          </div>
           <div>
             <label for="uName" data-i18n="uName"></label>
             <input id="uName" type="text" required />
@@ -237,6 +245,7 @@
       globe: svg('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>'),
       phone: svg('<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>'),
       users: svg('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'),
+      camera: svg('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>'),
       eye: svg('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),
       eyeOff: svg('<path d="M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.1-5.9M9.9 4.2A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2M1 1l22 22"/>'),
     };
@@ -254,6 +263,8 @@
         users: 'المستخدمين', uName: 'الاسم', addUser: 'إضافة مستخدم', allUsers: 'كل المستخدمين',
         userAdded: 'تم إضافة المستخدم ✓', userExists: 'الإيميل ده موجود قبل كده', owner: 'المالك', you: 'إنت',
         showPw: 'إظهار الباسورد', hidePw: 'إخفاء الباسورد',
+        choosePhoto: 'اختار صورة', photoOptional: 'اختياري — هتتصغّر تلقائياً', changePhoto: 'اضغط لتغيير الصورة',
+        uploading: 'جاري رفع الصورة...', photoSaved: 'تم تغيير الصورة ✓',
         backHome: 'الرئيسية', startNow: 'ابدأ دلوقتي', openApp: 'افتح ملاحظاتك', learnMore: 'اعرف أكتر',
         heroPill: 'بسيط، سريع، ومتزامن', heroTitle1: 'كل أرقامك وأفكارك', heroTitle2: 'في مكان واحد',
         heroText: 'اكتب ملاحظاتك وأرقامك في ثواني، واحفظها في السحابة، وارجعلها وعدّلها في أي وقت ومن أي جهاز.',
@@ -281,6 +292,8 @@
         users: 'Users', uName: 'Name', addUser: 'Add user', allUsers: 'All users',
         userAdded: 'User added ✓', userExists: 'This email already exists', owner: 'Owner', you: 'You',
         showPw: 'Show password', hidePw: 'Hide password',
+        choosePhoto: 'Choose photo', photoOptional: 'Optional — resized automatically', changePhoto: 'Click to change photo',
+        uploading: 'Uploading photo...', photoSaved: 'Photo updated ✓',
         backHome: 'Home', startNow: 'Get started', openApp: 'Open your notes', learnMore: 'Learn more',
         heroPill: 'Simple, fast and synced', heroTitle1: 'All your numbers and ideas', heroTitle2: 'in one place',
         heroText: 'Write down notes and numbers in seconds, save them to the cloud, and come back to edit them anytime, from any device.',
@@ -379,10 +392,23 @@
     const isOwner = (email) => email.toLowerCase() === USER.email;
     const displayName = (u) => (isOwner(u.email) ? t('userName') : u.name || u.email);
 
+    // Shows the user's photo inside an .avatar element, or their first letter
+    function fillAvatar(el, u) {
+      el.textContent = '';
+      if (u.avatar_url) {
+        const img = document.createElement('img');
+        img.src = u.avatar_url;
+        img.alt = '';
+        el.append(img);
+      } else {
+        el.textContent = displayName(u).charAt(0).toUpperCase();
+      }
+    }
+
     function updateWho() {
-      const name = displayName(currentUser());
-      $('whoName').textContent = name;
-      $('whoInitial').textContent = name.charAt(0).toUpperCase();
+      const u = currentUser();
+      $('whoName').textContent = displayName(u);
+      fillAvatar($('whoInitial'), u);
     }
 
     $('persona').addEventListener('click', () => {
@@ -397,7 +423,7 @@
       const btn = e.submitter;
       btn.disabled = true;
 
-      const { data, error } = await db.from('users').select('name, email')
+      const { data, error } = await db.from('users').select('name, email, avatar_url')
         .eq('email', email).eq('password', password).maybeSingle();
       btn.disabled = false;
 
@@ -624,7 +650,7 @@
       list.innerHTML = '';
       setUserMsg(t('loading'));
 
-      const { data, error } = await db.from('users').select('id, name, email').order('created_at');
+      const { data, error } = await db.from('users').select('id, name, email, avatar_url').order('created_at');
       if (error) return setUserMsg(t('error') + error.message, 'err');
       setUserMsg('');
 
@@ -633,10 +659,18 @@
         const row = document.createElement('div');
         row.className = 'user-row';
 
-        const avatar = document.createElement('span');
-        avatar.className = 'avatar';
+        // Clicking the avatar picks a new photo
+        const avatar = document.createElement('label');
+        avatar.className = 'avatar avatar-edit';
+        avatar.title = t('changePhoto');
+        fillAvatar(avatar, u);
+        const picker = document.createElement('input');
+        picker.type = 'file';
+        picker.accept = 'image/*';
+        picker.hidden = true;
+        picker.addEventListener('change', () => picker.files[0] && changeAvatar(u, picker.files[0], avatar));
+        avatar.append(picker);
         const name = displayName(u);
-        avatar.textContent = name.charAt(0).toUpperCase();
 
         const info = document.createElement('div');
         info.className = 'user-info';
@@ -662,40 +696,116 @@
         del.title = t('delBtn');
         del.innerHTML = ICONS.trash;
         del.disabled = !!tag;
-        del.addEventListener('click', () => deleteUser(u.id, row, del));
+        del.addEventListener('click', () => deleteUser(u, row, del));
         row.append(del);
 
         list.append(row);
       }
     }
 
-    async function deleteUser(id, row, btn) {
+    async function deleteUser(u, row, btn) {
       if (!confirmed(btn)) return;
       btn.disabled = true;
-      const { error } = await db.from('users').delete().eq('id', id);
+      const { error } = await db.from('users').delete().eq('id', u.id);
       if (error) {
         btn.disabled = false;
         return setUserMsg(t('error') + error.message, 'err');
       }
+      removeAvatarFile(u.avatar_url);
       row.remove();
     }
+
+    // ---------- Avatars (Supabase Storage bucket "avatars") ----------
+    // Center-crop to a square and shrink to 256px WebP before uploading
+    async function resizeImage(file, size = 256) {
+      const bmp = await createImageBitmap(file);
+      const side = Math.min(bmp.width, bmp.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = canvas.height = size;
+      canvas.getContext('2d').drawImage(bmp, (bmp.width - side) / 2, (bmp.height - side) / 2, side, side, 0, 0, size, size);
+      return new Promise((resolve) => canvas.toBlob(resolve, 'image/webp', 0.85));
+    }
+
+    async function uploadAvatar(file) {
+      const path = crypto.randomUUID() + '.webp';
+      const { error } = await db.storage.from('avatars').upload(path, await resizeImage(file), { contentType: 'image/webp' });
+      if (error) throw error;
+      return db.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+    }
+
+    function removeAvatarFile(url) {
+      const path = url && url.split('/avatars/')[1];
+      if (path) db.storage.from('avatars').remove([path]);
+    }
+
+    async function changeAvatar(u, file, avatarEl) {
+      setUserMsg(t('uploading'));
+      try {
+        const url = await uploadAvatar(file);
+        const { error } = await db.from('users').update({ avatar_url: url }).eq('id', u.id);
+        if (error) { removeAvatarFile(url); throw error; }
+        removeAvatarFile(u.avatar_url);
+        u.avatar_url = url;
+        const picker = avatarEl.querySelector('input');
+        fillAvatar(avatarEl, u); // clears the label, so put the file input back
+        avatarEl.append(picker);
+        if (u.email.toLowerCase() === currentUser().email.toLowerCase()) {
+          store.set('user', JSON.stringify({ ...currentUser(), avatar_url: url }));
+          updateWho();
+        }
+        setUserMsg(t('photoSaved'), 'ok');
+      } catch (err) {
+        setUserMsg(t('error') + err.message, 'err');
+      }
+    }
+
+    // Photo preview in the "add user" form
+    function resetPhotoPreview() {
+      const p = $('uPreview');
+      p.innerHTML = ICONS.camera;
+      p.classList.remove('has-photo');
+    }
+    $('uPhoto').addEventListener('change', () => {
+      const file = $('uPhoto').files[0];
+      if (!file) return resetPhotoPreview();
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      $('uPreview').replaceChildren(img);
+      $('uPreview').classList.add('has-photo');
+    });
+    resetPhotoPreview();
 
     $('userForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       $('addUserBtn').disabled = true;
-      setUserMsg(t('saving'));
 
-      const { error } = await db.from('users').insert({
-        name: $('uName').value.trim(),
-        email: $('uEmail').value.trim().toLowerCase(),
-        password: $('uPassword').value,
-      });
-      $('addUserBtn').disabled = false;
-
-      if (error) return setUserMsg(error.code === '23505' ? t('userExists') : t('error') + error.message, 'err');
-      e.target.reset();
-      await loadUsers();
-      setUserMsg(t('userAdded'), 'ok');
+      let avatar_url = null;
+      const file = $('uPhoto').files[0];
+      try {
+        if (file) {
+          setUserMsg(t('uploading'));
+          avatar_url = await uploadAvatar(file);
+        }
+        setUserMsg(t('saving'));
+        const { error } = await db.from('users').insert({
+          name: $('uName').value.trim(),
+          email: $('uEmail').value.trim().toLowerCase(),
+          password: $('uPassword').value,
+          avatar_url,
+        });
+        if (error) {
+          removeAvatarFile(avatar_url);
+          return setUserMsg(error.code === '23505' ? t('userExists') : t('error') + error.message, 'err');
+        }
+        e.target.reset();
+        resetPhotoPreview();
+        await loadUsers();
+        setUserMsg(t('userAdded'), 'ok');
+      } catch (err) {
+        setUserMsg(t('error') + err.message, 'err');
+      } finally {
+        $('addUserBtn').disabled = false;
+      }
     });
 
     applyLang();

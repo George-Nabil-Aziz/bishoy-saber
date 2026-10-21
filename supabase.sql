@@ -50,3 +50,29 @@ create policy "public can add users" on public.users for insert to anon with che
 drop policy if exists "public can delete users" on public.users;
 create policy "public can delete users" on public.users for delete to anon
   using (lower(email) <> 'bishoy.saber@gmail.com');
+
+
+-- ---------- User photos ----------
+
+alter table public.users add column if not exists avatar_url text;
+
+-- The website may only change a user's photo, nothing else
+revoke update on public.users from anon;
+grant update (avatar_url) on public.users to anon;
+
+drop policy if exists "public can change user photo" on public.users;
+create policy "public can change user photo" on public.users for update to anon using (true) with check (true);
+
+-- Public bucket for the photos (5 MB max, images only)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('avatars', 'avatars', true, 5242880, array['image/webp', 'image/jpeg', 'image/png'])
+on conflict (id) do nothing;
+
+drop policy if exists "public can upload avatars" on storage.objects;
+create policy "public can upload avatars" on storage.objects for insert to anon with check (bucket_id = 'avatars');
+
+drop policy if exists "public can read avatars" on storage.objects;
+create policy "public can read avatars" on storage.objects for select to anon using (bucket_id = 'avatars');
+
+drop policy if exists "public can delete avatars" on storage.objects;
+create policy "public can delete avatars" on storage.objects for delete to anon using (bucket_id = 'avatars');
