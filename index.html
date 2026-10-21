@@ -463,6 +463,7 @@
     function show(view) {
       for (const v of ['landing', 'login', 'app']) $(v).classList.toggle('hidden', v !== view);
       window.scrollTo(0, 0);
+      document.querySelector('main').scrollTop = 0; // the app's content scrolls inside <main>
     }
 
     function render() {

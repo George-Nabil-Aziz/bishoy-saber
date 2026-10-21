@@ -202,7 +202,8 @@ footer { text-align: center; color: var(--muted); padding: 10px 0 30px; font-siz
 .persona small { display: block; color: var(--muted); direction: ltr; text-align: start; }
 
 /* ---------- App ---------- */
-#app { display: flex; min-height: 100vh; }
+/* Sidebar stays fixed; only the content area scrolls */
+#app { display: flex; height: 100vh; height: 100dvh; overflow: hidden; }
 aside {
   width: 230px; background: var(--sidebar); color: var(--sidebar-text); padding: 20px 14px;
   display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
@@ -223,7 +224,7 @@ aside .toggle { background: var(--sidebar-hover); border-color: transparent; col
   background: rgba(248, 113, 113, .12); border: 1px solid rgba(248, 113, 113, .35); color: #fca5a5;
 }
 .signout:hover { background: rgba(248, 113, 113, .22); color: #fff; }
-main { flex: 1; padding: 32px 16px; min-width: 0; }
+main { flex: 1; padding: 32px 16px; min-width: 0; overflow-y: auto; }
 main .card { max-width: 640px; margin: 0 auto; }
 
 #list { list-style: none; padding: 0; margin: 16px 0 0; }
@@ -304,7 +305,7 @@ input[readonly] { opacity: .6; cursor: not-allowed; }
   .nav .brand-name { display: none; }
   .hero { padding: 40px 0 30px; }
   #app { flex-direction: column; }
-  aside { width: 100%; flex-direction: row; align-items: center; gap: 6px; padding: 10px 12px; }
+  aside { width: 100%; flex-direction: row; overflow-x: auto; align-items: center; gap: 6px; padding: 10px 12px; }
   aside nav { flex-direction: row; gap: 4px; }
   aside nav a { padding: 9px 10px; }
   aside nav a [data-i18n] { display: none; }
