@@ -183,6 +183,7 @@
       <!-- Users -->
       <div id="users" class="card hidden">
         <h1 data-i18n="users"></h1>
+        <h2 class="sub-title form-title" id="userFormTitle"></h2>
         <form id="userForm" class="user-form" autocomplete="off">
           <div class="full photo-pick">
             <label for="uPhoto" class="photo-circle" id="uPreview" data-i18n-title="choosePhoto"></label>
@@ -203,9 +204,13 @@
           <div class="full">
             <label for="uPassword" data-i18n="password"></label>
             <input id="uPassword" type="password" required minlength="6" dir="ltr" autocomplete="new-password" />
+            <small class="field-hint hidden" id="pwHint" data-i18n="pwKeep"></small>
+          </div>
+          <div class="full form-actions">
+            <button type="submit" class="btn" id="addUserBtn"></button>
+            <button type="button" class="btn ghost hidden" id="cancelEditUser" data-i18n="cancel"></button>
           </div>
           <div class="full">
-            <button type="submit" class="btn block" id="addUserBtn" data-i18n="addUser"></button>
             <div id="userMsg" class="msg"></div>
           </div>
         </form>
@@ -265,6 +270,7 @@
         showPw: 'إظهار الباسورد', hidePw: 'إخفاء الباسورد',
         choosePhoto: 'اختار صورة', photoOptional: 'اختياري — هتتصغّر تلقائياً', changePhoto: 'اضغط لتغيير الصورة',
         uploading: 'جاري رفع الصورة...', photoSaved: 'تم تغيير الصورة ✓',
+        editUser: 'تعديل', userUpdated: 'تم تعديل المستخدم ✓', cancel: 'إلغاء', pwKeep: 'سيبها فاضية لو مش عايز تغير الباسورد',
         backHome: 'الرئيسية', startNow: 'ابدأ دلوقتي', openApp: 'افتح ملاحظاتك', learnMore: 'اعرف أكتر',
         heroPill: 'بسيط، سريع، ومتزامن', heroTitle1: 'كل أرقامك وأفكارك', heroTitle2: 'في مكان واحد',
         heroText: 'اكتب ملاحظاتك وأرقامك في ثواني، واحفظها في السحابة، وارجعلها وعدّلها في أي وقت ومن أي جهاز.',
@@ -294,6 +300,7 @@
         showPw: 'Show password', hidePw: 'Hide password',
         choosePhoto: 'Choose photo', photoOptional: 'Optional — resized automatically', changePhoto: 'Click to change photo',
         uploading: 'Uploading photo...', photoSaved: 'Photo updated ✓',
+        editUser: 'Edit', userUpdated: 'User updated ✓', cancel: 'Cancel', pwKeep: 'Leave empty to keep the current password',
         backHome: 'Home', startNow: 'Get started', openApp: 'Open your notes', learnMore: 'Learn more',
         heroPill: 'Simple, fast and synced', heroTitle1: 'All your numbers and ideas', heroTitle2: 'in one place',
         heroText: 'Write down notes and numbers in seconds, save them to the cloud, and come back to edit them anytime, from any device.',
@@ -326,6 +333,7 @@
       document.querySelectorAll('.pw-eye').forEach(syncEye);
       $('editorTitle').textContent = t(editingId ? 'editTitle' : 'addTitle');
       updateWho();
+      syncUserForm();
       if ($('app').classList.contains('hidden')) return;
       if (!$('history').classList.contains('hidden')) loadHistory();
       if (!$('viewer').classList.contains('hidden')) render();
@@ -390,7 +398,8 @@
       try { return JSON.parse(store.get('user')) || { email: USER.email }; } catch { return { email: USER.email }; }
     }
     const isOwner = (email) => email.toLowerCase() === USER.email;
-    const displayName = (u) => (isOwner(u.email) ? t('userName') : u.name || u.email);
+    // The owner's default name is translated; a renamed owner shows the new name
+    const displayName = (u) => (isOwner(u.email) && (!u.name || u.name === 'Bishoy Saber') ? t('userName') : u.name || u.email);
 
     // Shows the user's photo inside an .avatar element, or their first letter
     function fillAvatar(el, u) {
@@ -427,8 +436,8 @@
         .eq('email', email).eq('password', password).maybeSingle();
       btn.disabled = false;
 
-      // Owner can always sign in, even if the users table is unreachable
-      const user = data || (email === USER.email && password === USER.password ? { email } : null);
+      // Owner can still sign in with the default password if the users table is unreachable
+      const user = data || (error && email === USER.email && password === USER.password ? { email } : null);
       if (user) {
         store.set('loggedIn', '1');
         store.set('user', JSON.stringify(user));
@@ -690,6 +699,13 @@
           row.append(badge);
         }
 
+        const edit = document.createElement('button');
+        edit.type = 'button';
+        edit.className = 'icon-btn edit';
+        edit.title = t('editBtn');
+        edit.innerHTML = ICONS.edit;
+        edit.addEventListener('click', () => startEditUser(u));
+
         const del = document.createElement('button');
         del.type = 'button';
         del.className = 'icon-btn del';
@@ -697,7 +713,7 @@
         del.innerHTML = ICONS.trash;
         del.disabled = !!tag;
         del.addEventListener('click', () => deleteUser(u, row, del));
-        row.append(del);
+        row.append(edit, del);
 
         list.append(row);
       }
@@ -759,54 +775,105 @@
       }
     }
 
-    // Photo preview in the "add user" form
-    function resetPhotoPreview() {
+    // ---------- Add / edit user form ----------
+    let editingUser = null; // the user being edited, or null when adding
+
+    function showPhotoPreview(src) {
       const p = $('uPreview');
-      p.innerHTML = ICONS.camera;
-      p.classList.remove('has-photo');
+      if (!src) {
+        p.innerHTML = ICONS.camera;
+        p.classList.remove('has-photo');
+        return;
+      }
+      const img = document.createElement('img');
+      img.src = src;
+      p.replaceChildren(img);
+      p.classList.add('has-photo');
     }
     $('uPhoto').addEventListener('change', () => {
       const file = $('uPhoto').files[0];
-      if (!file) return resetPhotoPreview();
-      const img = document.createElement('img');
-      img.src = URL.createObjectURL(file);
-      $('uPreview').replaceChildren(img);
-      $('uPreview').classList.add('has-photo');
+      showPhotoPreview(file ? URL.createObjectURL(file) : editingUser && editingUser.avatar_url);
     });
-    resetPhotoPreview();
+
+    // Updates the form's title, button and password rules for add vs. edit mode
+    function syncUserForm() {
+      const editing = !!editingUser;
+      $('userFormTitle').textContent = editing ? t('editUser') + ': ' + displayName(editingUser) : t('addUser');
+      $('addUserBtn').textContent = t(editing ? 'save' : 'addUser');
+      $('cancelEditUser').classList.toggle('hidden', !editing);
+      $('uPassword').required = !editing;
+      $('pwHint').classList.toggle('hidden', !editing);
+      // The owner's email is fixed (it protects the account from being deleted)
+      $('uEmail').readOnly = editing && isOwner(editingUser.email);
+    }
+
+    function startEditUser(u) {
+      editingUser = u;
+      $('userForm').reset();
+      $('uName').value = u.name;
+      $('uEmail').value = u.email;
+      showPhotoPreview(u.avatar_url);
+      setUserMsg('');
+      syncUserForm();
+      $('userFormTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      $('uName').focus({ preventScroll: true });
+    }
+
+    function stopEditUser() {
+      editingUser = null;
+      $('userForm').reset();
+      showPhotoPreview(null);
+      syncUserForm();
+    }
+    $('cancelEditUser').addEventListener('click', () => { stopEditUser(); setUserMsg(''); });
 
     $('userForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       $('addUserBtn').disabled = true;
 
-      let avatar_url = null;
+      const editing = editingUser;
+      const row = {
+        name: $('uName').value.trim(),
+        email: $('uEmail').value.trim().toLowerCase(),
+      };
+      if ($('uPassword').value) row.password = $('uPassword').value;
+
+      let newPhoto = null;
       const file = $('uPhoto').files[0];
       try {
         if (file) {
           setUserMsg(t('uploading'));
-          avatar_url = await uploadAvatar(file);
+          newPhoto = row.avatar_url = await uploadAvatar(file);
         }
         setUserMsg(t('saving'));
-        const { error } = await db.from('users').insert({
-          name: $('uName').value.trim(),
-          email: $('uEmail').value.trim().toLowerCase(),
-          password: $('uPassword').value,
-          avatar_url,
-        });
+        const { error } = editing
+          ? await db.from('users').update(row).eq('id', editing.id)
+          : await db.from('users').insert(row);
         if (error) {
-          removeAvatarFile(avatar_url);
+          removeAvatarFile(newPhoto);
           return setUserMsg(error.code === '23505' ? t('userExists') : t('error') + error.message, 'err');
         }
-        e.target.reset();
-        resetPhotoPreview();
+
+        if (editing) {
+          if (newPhoto) removeAvatarFile(editing.avatar_url);
+          // Keep the sidebar in sync when editing yourself
+          if (editing.email.toLowerCase() === currentUser().email.toLowerCase()) {
+            store.set('user', JSON.stringify({
+              name: row.name, email: row.email, avatar_url: newPhoto || editing.avatar_url,
+            }));
+            updateWho();
+          }
+        }
+        stopEditUser();
         await loadUsers();
-        setUserMsg(t('userAdded'), 'ok');
+        setUserMsg(t(editing ? 'userUpdated' : 'userAdded'), 'ok');
       } catch (err) {
         setUserMsg(t('error') + err.message, 'err');
       } finally {
         $('addUserBtn').disabled = false;
       }
     });
+    stopEditUser();
 
     applyLang();
     applyTheme();

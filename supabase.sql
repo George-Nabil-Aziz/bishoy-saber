@@ -56,12 +56,27 @@ create policy "public can delete users" on public.users for delete to anon
 
 alter table public.users add column if not exists avatar_url text;
 
--- The website may only change a user's photo, nothing else
+-- The website can edit a user's name, email, password and photo
 revoke update on public.users from anon;
-grant update (avatar_url) on public.users to anon;
+grant update (name, email, password, avatar_url) on public.users to anon;
 
 drop policy if exists "public can change user photo" on public.users;
-create policy "public can change user photo" on public.users for update to anon using (true) with check (true);
+drop policy if exists "public can edit users" on public.users;
+create policy "public can edit users" on public.users for update to anon using (true) with check (true);
+
+-- The owner's email can never change (the delete protection above depends on it)
+create or replace function public.protect_owner_email() returns trigger
+language plpgsql as $$
+begin
+  if lower(old.email) = 'bishoy.saber@gmail.com' and lower(new.email) <> lower(old.email) then
+    raise exception 'The owner email cannot be changed';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists protect_owner_email on public.users;
+create trigger protect_owner_email before update on public.users
+  for each row execute function public.protect_owner_email();
 
 -- Public bucket for the photos (5 MB max, images only)
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

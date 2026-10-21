@@ -296,6 +296,12 @@ main .card { max-width: 640px; margin: 0 auto; }
 .photo-pick label.photo-btn { margin: 0 0 2px; color: var(--primary); cursor: pointer; font-size: 15px; }
 .photo-pick small { color: var(--muted); }
 
+.form-title { margin-top: 12px; }
+.form-actions { display: flex; gap: 10px; margin-top: 22px; }
+.form-actions .btn { flex: 1; }
+.field-hint { display: block; margin-top: 6px; color: var(--muted); font-size: 13px; }
+input[readonly] { opacity: .6; cursor: not-allowed; }
+
 .badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); white-space: nowrap; }
 .sub-title { margin: 28px 0 4px; font-size: 18px; }
 
