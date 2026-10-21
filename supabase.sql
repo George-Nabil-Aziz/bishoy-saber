@@ -91,3 +91,22 @@ create policy "public can read avatars" on storage.objects for select to anon us
 
 drop policy if exists "public can delete avatars" on storage.objects;
 create policy "public can delete avatars" on storage.objects for delete to anon using (bucket_id = 'avatars');
+
+
+-- ---------- Note images ----------
+
+alter table public.entries add column if not exists image_url text;
+
+-- Public bucket for note images (10 MB max, images only)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('note-images', 'note-images', true, 10485760, array['image/webp', 'image/jpeg', 'image/png'])
+on conflict (id) do nothing;
+
+drop policy if exists "public can upload note images" on storage.objects;
+create policy "public can upload note images" on storage.objects for insert to anon with check (bucket_id = 'note-images');
+
+drop policy if exists "public can read note images" on storage.objects;
+create policy "public can read note images" on storage.objects for select to anon using (bucket_id = 'note-images');
+
+drop policy if exists "public can delete note images" on storage.objects;
+create policy "public can delete note images" on storage.objects for delete to anon using (bucket_id = 'note-images');
