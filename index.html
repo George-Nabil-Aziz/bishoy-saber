@@ -185,6 +185,19 @@
         <h1 data-i18n="users"></h1>
         <h2 class="sub-title form-title" id="userFormTitle"></h2>
         <form id="userForm" class="user-form" autocomplete="off">
+          <div>
+            <label for="uName" class="req" data-i18n="uName"></label>
+            <input id="uName" type="text" required />
+          </div>
+          <div>
+            <label for="uEmail" class="req" data-i18n="email"></label>
+            <input id="uEmail" type="email" required dir="ltr" autocomplete="off" />
+          </div>
+          <div class="full">
+            <label for="uPassword" id="uPasswordLabel" data-i18n="password"></label>
+            <input id="uPassword" type="password" required minlength="6" dir="ltr" autocomplete="new-password" />
+            <small class="field-hint hidden" id="pwHint" data-i18n="pwKeep"></small>
+          </div>
           <div class="full photo-pick">
             <label for="uPhoto" class="photo-circle" id="uPreview" data-i18n-title="choosePhoto"></label>
             <input id="uPhoto" type="file" accept="image/*" hidden />
@@ -192,19 +205,6 @@
               <label for="uPhoto" class="photo-btn" data-i18n="choosePhoto"></label>
               <small data-i18n="photoOptional"></small>
             </div>
-          </div>
-          <div>
-            <label for="uName" data-i18n="uName"></label>
-            <input id="uName" type="text" required />
-          </div>
-          <div>
-            <label for="uEmail" data-i18n="email"></label>
-            <input id="uEmail" type="email" required dir="ltr" autocomplete="off" />
-          </div>
-          <div class="full">
-            <label for="uPassword" data-i18n="password"></label>
-            <input id="uPassword" type="password" required minlength="6" dir="ltr" autocomplete="new-password" />
-            <small class="field-hint hidden" id="pwHint" data-i18n="pwKeep"></small>
           </div>
           <div class="full form-actions">
             <button type="submit" class="btn" id="addUserBtn"></button>
@@ -774,6 +774,7 @@
       $('addUserBtn').textContent = t(editing ? 'save' : 'addUser');
       $('cancelEditUser').classList.toggle('hidden', !editing);
       $('uPassword').required = !editing;
+      $('uPasswordLabel').classList.toggle('req', !editing);
       $('pwHint').classList.toggle('hidden', !editing);
       // The owner's email is fixed (it protects the account from being deleted)
       $('uEmail').readOnly = editing && isOwner(editingUser.email);
