@@ -267,19 +267,48 @@
     }
     .icon-btn.edit:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
     .icon-btn.del:hover, .icon-btn.del.confirm { color: var(--err); border-color: var(--err); background: var(--err-soft); }
+    .icon-btn:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
+
+    /* Password eye */
+    .pw-wrap { position: relative; direction: ltr; } /* password text is LTR, keep the eye on its trailing side */
+    .pw-wrap input { padding-inline-end: 44px; }
+    .pw-eye {
+      position: absolute; top: 50%; inset-inline-end: 6px; transform: translateY(-50%);
+      width: 34px; height: 34px; border: 0; border-radius: 8px; background: none; color: var(--muted);
+      display: grid; place-items: center;
+    }
+    .pw-eye:hover { color: var(--primary); background: var(--primary-soft); }
+
+    /* Users */
+    .user-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+    .user-form .full { grid-column: 1 / -1; }
+    .user-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; }
+    .user-row + .user-row { border-top: 1px solid var(--border); }
+    .user-row .avatar { width: 38px; height: 38px; font-size: 15px; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-info strong { display: block; }
+    .user-info small { display: block; color: var(--muted); direction: ltr; text-align: start; overflow: hidden; text-overflow: ellipsis; }
+    .badge { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--primary-soft); color: var(--primary); white-space: nowrap; }
+    .sub-title { margin: 28px 0 4px; font-size: 18px; }
 
     @media (max-width: 640px) {
       .nav .brand-name { display: none; }
       .hero { padding: 40px 0 30px; }
       #app { flex-direction: column; }
-      aside { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px 16px; }
-      aside nav { flex-direction: row; }
+      aside { width: 100%; flex-direction: row; align-items: center; gap: 6px; padding: 10px 12px; }
+      aside nav { flex-direction: row; gap: 4px; }
+      aside nav a { padding: 9px 10px; }
+      aside nav a [data-i18n] { display: none; }
       .who { display: none; }
-      .aside-bottom { margin: 0; margin-inline-start: auto; flex-direction: row; }
-      .signout span { display: none; }
+      .aside-bottom { margin: 0; margin-inline-start: auto; flex-direction: row; gap: 6px; }
+      .aside-bottom .toggles { gap: 6px; }
+      .aside-bottom .toggle { padding: 0 8px; }
+      .signout { height: 38px; width: 38px; padding: 0; }
+      .signout [data-i18n] { display: none; }
       main { padding: 20px 16px; }
       .card { padding: 20px; }
       #list .date { display: none; }
+      .user-form { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -383,14 +412,15 @@
   <!-- ================= App ================= -->
   <div id="app" class="hidden">
     <aside>
-      <div class="who"><span class="avatar" data-i18n="initial"></span><span data-i18n="userName"></span></div>
+      <div class="who"><span class="avatar" id="whoInitial"></span><span id="whoName"></span></div>
       <nav>
         <a href="#/add" data-nav="add"><span data-icon="plus"></span><span data-i18n="addNote"></span></a>
         <a href="#/history" data-nav="history"><span data-icon="list"></span><span data-i18n="history"></span></a>
+        <a href="#/users" data-nav="users"><span data-icon="users"></span><span data-i18n="users"></span></a>
       </nav>
       <div class="aside-bottom">
         <div data-toggles></div>
-        <button type="button" class="signout" id="signout"><span class="flip" data-icon="logout"></span><span data-i18n="signout"></span></button>
+        <button type="button" class="signout" id="signout" data-i18n-title="signout"><span class="flip" data-icon="logout"></span><span data-i18n="signout"></span></button>
       </div>
     </aside>
 
@@ -418,6 +448,32 @@
         <h1 data-i18n="history"></h1>
         <ul id="list"></ul>
         <div id="historyMsg" class="msg"></div>
+      </div>
+
+      <!-- Users -->
+      <div id="users" class="card hidden">
+        <h1 data-i18n="users"></h1>
+        <form id="userForm" class="user-form" autocomplete="off">
+          <div>
+            <label for="uName" data-i18n="uName"></label>
+            <input id="uName" type="text" required />
+          </div>
+          <div>
+            <label for="uEmail" data-i18n="email"></label>
+            <input id="uEmail" type="email" required dir="ltr" autocomplete="off" />
+          </div>
+          <div class="full">
+            <label for="uPassword" data-i18n="password"></label>
+            <input id="uPassword" type="password" required minlength="6" dir="ltr" autocomplete="new-password" />
+          </div>
+          <div class="full">
+            <button type="submit" class="btn block" id="addUserBtn" data-i18n="addUser"></button>
+            <div id="userMsg" class="msg"></div>
+          </div>
+        </form>
+
+        <h2 class="sub-title" data-i18n="allUsers"></h2>
+        <div id="userList"></div>
       </div>
     </main>
   </div>
@@ -450,6 +506,9 @@
       cloud: svg('<path d="M18 10h-1.3A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>'),
       globe: svg('<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/>'),
       phone: svg('<rect x="6" y="2" width="12" height="20" rx="2"/><path d="M11 18h2"/>'),
+      users: svg('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9M16 3.1a4 4 0 0 1 0 7.8"/>'),
+      eye: svg('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),
+      eyeOff: svg('<path d="M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.1-5.9M9.9 4.2A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2M1 1l22 22"/>'),
     };
 
     // ---------- Translations ----------
@@ -462,6 +521,9 @@
         save: 'حفظ', saving: 'جاري الحفظ...', saved: 'تم الحفظ ✓', updated: 'تم التعديل ✓', loading: 'جاري التحميل...',
         error: 'حصل خطأ: ', empty: 'مافيش ملاحظات لسه', otherLang: 'English',
         editBtn: 'تعديل', delBtn: 'مسح', confirmDel: 'متأكد؟',
+        users: 'المستخدمين', uName: 'الاسم', addUser: 'إضافة مستخدم', allUsers: 'كل المستخدمين',
+        userAdded: 'تم إضافة المستخدم ✓', userExists: 'الإيميل ده موجود قبل كده', owner: 'المالك', you: 'إنت',
+        showPw: 'إظهار الباسورد', hidePw: 'إخفاء الباسورد',
         backHome: 'الرئيسية', startNow: 'ابدأ دلوقتي', openApp: 'افتح ملاحظاتك', learnMore: 'اعرف أكتر',
         heroPill: 'بسيط، سريع، ومتزامن', heroTitle1: 'كل أرقامك وأفكارك', heroTitle2: 'في مكان واحد',
         heroText: 'اكتب ملاحظاتك وأرقامك في ثواني، واحفظها في السحابة، وارجعلها وعدّلها في أي وقت ومن أي جهاز.',
@@ -486,6 +548,9 @@
         save: 'Save', saving: 'Saving...', saved: 'Saved ✓', updated: 'Updated ✓', loading: 'Loading...',
         error: 'Error: ', empty: 'No notes yet', otherLang: 'عربي',
         editBtn: 'Edit', delBtn: 'Delete', confirmDel: 'Sure?',
+        users: 'Users', uName: 'Name', addUser: 'Add user', allUsers: 'All users',
+        userAdded: 'User added ✓', userExists: 'This email already exists', owner: 'Owner', you: 'You',
+        showPw: 'Show password', hidePw: 'Hide password',
         backHome: 'Home', startNow: 'Get started', openApp: 'Open your notes', learnMore: 'Learn more',
         heroPill: 'Simple, fast and synced', heroTitle1: 'All your numbers and ideas', heroTitle2: 'in one place',
         heroText: 'Write down notes and numbers in seconds, save them to the cloud, and come back to edit them anytime, from any device.',
@@ -511,11 +576,38 @@
       document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
       document.title = t('appName');
       document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+      document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+      document.querySelectorAll('[data-nav]').forEach((a) => { a.title = t(a.dataset.nav === 'add' ? 'addNote' : a.dataset.nav); });
       document.querySelectorAll('[data-action="lang"]').forEach((b) => { b.textContent = t('otherLang'); });
       document.querySelectorAll('[data-enter]').forEach((a) => { a.textContent = t(isLoggedIn() ? 'openApp' : 'startNow'); });
+      document.querySelectorAll('.pw-eye').forEach(syncEye);
       $('editorTitle').textContent = t(editingId ? 'editTitle' : 'addTitle');
-      if (!$('history').classList.contains('hidden') && !$('app').classList.contains('hidden')) loadHistory();
+      updateWho();
+      if ($('app').classList.contains('hidden')) return;
+      if (!$('history').classList.contains('hidden')) loadHistory();
+      if (!$('users').classList.contains('hidden')) loadUsers();
     }
+
+    // ---------- Password eye ----------
+    function syncEye(btn) {
+      const shown = btn.previousElementSibling.type === 'text';
+      btn.innerHTML = shown ? ICONS.eyeOff : ICONS.eye;
+      btn.title = t(shown ? 'hidePw' : 'showPw');
+      btn.setAttribute('aria-label', btn.title);
+    }
+    document.querySelectorAll('input[type="password"]').forEach((input) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'pw-wrap';
+      input.replaceWith(wrap);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'pw-eye';
+      btn.addEventListener('click', () => {
+        input.type = input.type === 'password' ? 'text' : 'password';
+        syncEye(btn);
+      });
+      wrap.append(input, btn);
+    });
 
     // ---------- Theme ----------
     const isDark = () => {
@@ -549,30 +641,57 @@
     // ---------- Login ----------
     const isLoggedIn = () => store.get('loggedIn') === '1';
 
+    // Logged-in user as { name, email }; older sessions without it are the owner
+    function currentUser() {
+      try { return JSON.parse(store.get('user')) || { email: USER.email }; } catch { return { email: USER.email }; }
+    }
+    const isOwner = (email) => email.toLowerCase() === USER.email;
+    const displayName = (u) => (isOwner(u.email) ? t('userName') : u.name || u.email);
+
+    function updateWho() {
+      const name = displayName(currentUser());
+      $('whoName').textContent = name;
+      $('whoInitial').textContent = name.charAt(0).toUpperCase();
+    }
+
     $('persona').addEventListener('click', () => {
       $('email').value = USER.email;
       $('password').value = USER.password;
     });
 
-    $('loginForm').addEventListener('submit', (e) => {
+    $('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      if ($('email').value.trim().toLowerCase() === USER.email && $('password').value === USER.password) {
+      const email = $('email').value.trim().toLowerCase();
+      const password = $('password').value;
+      const btn = e.submitter;
+      btn.disabled = true;
+
+      const { data, error } = await db.from('users').select('name, email')
+        .eq('email', email).eq('password', password).maybeSingle();
+      btn.disabled = false;
+
+      // Owner can always sign in, even if the users table is unreachable
+      const user = data || (email === USER.email && password === USER.password ? { email } : null);
+      if (user) {
         store.set('loggedIn', '1');
+        store.set('user', JSON.stringify(user));
         $('loginMsg').textContent = '';
+        updateWho();
         location.hash = '#/add';
       } else {
-        $('loginMsg').textContent = t('badLogin');
+        $('loginMsg').textContent = error ? t('error') + error.message : t('badLogin');
         $('loginMsg').className = 'msg err';
       }
     });
 
     $('signout').addEventListener('click', () => {
       store.del('loggedIn');
+      store.del('user');
       $('loginForm').reset();
       location.hash = '#/';
     });
 
-    // ---------- Routing: #/ (landing), #/login, #/add, #/history, #/edit/<id> ----------
+    // ---------- Routing: #/ (landing), #/login, #/add, #/history, #/edit/<id>, #/users ----------
     let editingId = null;
 
     function show(view) {
@@ -593,13 +712,13 @@
       if (!loggedIn) return (location.hash = '#/login');
 
       show('app');
-      const isHistory = page === 'history';
-      $('editor').classList.toggle('hidden', isHistory);
-      $('history').classList.toggle('hidden', !isHistory);
-      document.querySelectorAll('[data-nav]').forEach((a) =>
-        a.classList.toggle('active', a.dataset.nav === (isHistory || page === 'edit' ? 'history' : 'add')));
+      const section = page === 'history' || page === 'users' ? page : 'editor';
+      for (const s of ['editor', 'history', 'users']) $(s).classList.toggle('hidden', s !== section);
+      const activeNav = section === 'editor' ? (page === 'edit' ? 'history' : 'add') : section;
+      document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('active', a.dataset.nav === activeNav));
 
-      if (isHistory) loadHistory();
+      if (section === 'history') loadHistory();
+      else if (section === 'users') loadUsers();
       else if (page === 'edit' && id) openEdit(id);
       else openAdd();
     }
@@ -712,15 +831,20 @@
       }
     }
 
-    // First click arms the button ("Sure?"), second click within 3s deletes
-    async function deleteNote(id, li, btn) {
+    // First click arms the button ("Sure?") and returns false; second click within 3s returns true
+    function confirmed(btn) {
       if (!btn.classList.contains('confirm')) {
         btn.classList.add('confirm');
         btn.textContent = t('confirmDel');
         btn._timer = setTimeout(() => { btn.classList.remove('confirm'); btn.innerHTML = ICONS.trash; }, 3000);
-        return;
+        return false;
       }
       clearTimeout(btn._timer);
+      return true;
+    }
+
+    async function deleteNote(id, li, btn) {
+      if (!confirmed(btn)) return;
       btn.disabled = true;
       const { error } = await db.from('entries').delete().eq('id', id);
       if (error) {
@@ -732,6 +856,88 @@
       li.remove();
       if (!$('list').children.length) $('historyMsg').textContent = t('empty');
     }
+
+    // ---------- Users ----------
+    function setUserMsg(text, cls = '') { $('userMsg').textContent = text; $('userMsg').className = 'msg ' + cls; }
+
+    async function loadUsers() {
+      const list = $('userList');
+      list.innerHTML = '';
+      setUserMsg(t('loading'));
+
+      const { data, error } = await db.from('users').select('id, name, email').order('created_at');
+      if (error) return setUserMsg(t('error') + error.message, 'err');
+      setUserMsg('');
+
+      const me = currentUser().email.toLowerCase();
+      for (const u of data) {
+        const row = document.createElement('div');
+        row.className = 'user-row';
+
+        const avatar = document.createElement('span');
+        avatar.className = 'avatar';
+        const name = displayName(u);
+        avatar.textContent = name.charAt(0).toUpperCase();
+
+        const info = document.createElement('div');
+        info.className = 'user-info';
+        const strong = document.createElement('strong');
+        strong.textContent = name;
+        const small = document.createElement('small');
+        small.textContent = u.email;
+        info.append(strong, small);
+        row.append(avatar, info);
+
+        // The owner and the signed-in user can't be removed
+        const tag = isOwner(u.email) ? 'owner' : u.email.toLowerCase() === me ? 'you' : null;
+        if (tag) {
+          const badge = document.createElement('span');
+          badge.className = 'badge';
+          badge.textContent = t(tag);
+          row.append(badge);
+        }
+
+        const del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'icon-btn del';
+        del.title = t('delBtn');
+        del.innerHTML = ICONS.trash;
+        del.disabled = !!tag;
+        del.addEventListener('click', () => deleteUser(u.id, row, del));
+        row.append(del);
+
+        list.append(row);
+      }
+    }
+
+    async function deleteUser(id, row, btn) {
+      if (!confirmed(btn)) return;
+      btn.disabled = true;
+      const { error } = await db.from('users').delete().eq('id', id);
+      if (error) {
+        btn.disabled = false;
+        return setUserMsg(t('error') + error.message, 'err');
+      }
+      row.remove();
+    }
+
+    $('userForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('addUserBtn').disabled = true;
+      setUserMsg(t('saving'));
+
+      const { error } = await db.from('users').insert({
+        name: $('uName').value.trim(),
+        email: $('uEmail').value.trim().toLowerCase(),
+        password: $('uPassword').value,
+      });
+      $('addUserBtn').disabled = false;
+
+      if (error) return setUserMsg(error.code === '23505' ? t('userExists') : t('error') + error.message, 'err');
+      e.target.reset();
+      await loadUsers();
+      setUserMsg(t('userAdded'), 'ok');
+    });
 
     applyLang();
     applyTheme();
