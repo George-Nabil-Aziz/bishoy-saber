@@ -3,7 +3,7 @@
 create table if not exists public.entries (
   id          bigint generated always as identity primary key,
   title       text    not null,
-  amount      numeric not null,
+  amount      numeric,
   notes       text,
   created_at  timestamptz not null default now()
 );
@@ -110,3 +110,8 @@ create policy "public can read note images" on storage.objects for select to ano
 
 drop policy if exists "public can delete note images" on storage.objects;
 create policy "public can delete note images" on storage.objects for delete to anon using (bucket_id = 'note-images');
+
+
+-- ---------- The number on a note is optional ----------
+
+alter table public.entries alter column amount drop not null;
