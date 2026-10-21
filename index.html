@@ -268,8 +268,8 @@
         users: 'المستخدمين', uName: 'الاسم', addUser: 'إضافة مستخدم', allUsers: 'كل المستخدمين',
         userAdded: 'تم إضافة المستخدم ✓', userExists: 'الإيميل ده موجود قبل كده', owner: 'المالك', you: 'إنت',
         showPw: 'إظهار الباسورد', hidePw: 'إخفاء الباسورد',
-        choosePhoto: 'اختار صورة', photoOptional: 'اختياري — هتتصغّر تلقائياً', changePhoto: 'اضغط لتغيير الصورة',
-        uploading: 'جاري رفع الصورة...', photoSaved: 'تم تغيير الصورة ✓',
+        choosePhoto: 'اختار صورة', photoOptional: 'اختياري — هتتصغّر تلقائياً',
+        uploading: 'جاري رفع الصورة...',
         editUser: 'تعديل', userUpdated: 'تم تعديل المستخدم ✓', cancel: 'إلغاء', pwKeep: 'سيبها فاضية لو مش عايز تغير الباسورد',
         backHome: 'الرئيسية', startNow: 'ابدأ دلوقتي', openApp: 'افتح ملاحظاتك', learnMore: 'اعرف أكتر',
         heroPill: 'بسيط، سريع، ومتزامن', heroTitle1: 'كل أرقامك وأفكارك', heroTitle2: 'في مكان واحد',
@@ -298,8 +298,8 @@
         users: 'Users', uName: 'Name', addUser: 'Add user', allUsers: 'All users',
         userAdded: 'User added ✓', userExists: 'This email already exists', owner: 'Owner', you: 'You',
         showPw: 'Show password', hidePw: 'Hide password',
-        choosePhoto: 'Choose photo', photoOptional: 'Optional — resized automatically', changePhoto: 'Click to change photo',
-        uploading: 'Uploading photo...', photoSaved: 'Photo updated ✓',
+        choosePhoto: 'Choose photo', photoOptional: 'Optional — resized automatically',
+        uploading: 'Uploading photo...',
         editUser: 'Edit', userUpdated: 'User updated ✓', cancel: 'Cancel', pwKeep: 'Leave empty to keep the current password',
         backHome: 'Home', startNow: 'Get started', openApp: 'Open your notes', learnMore: 'Learn more',
         heroPill: 'Simple, fast and synced', heroTitle1: 'All your numbers and ideas', heroTitle2: 'in one place',
@@ -668,17 +668,9 @@
         const row = document.createElement('div');
         row.className = 'user-row';
 
-        // Clicking the avatar picks a new photo
-        const avatar = document.createElement('label');
-        avatar.className = 'avatar avatar-edit';
-        avatar.title = t('changePhoto');
+        const avatar = document.createElement('span');
+        avatar.className = 'avatar';
         fillAvatar(avatar, u);
-        const picker = document.createElement('input');
-        picker.type = 'file';
-        picker.accept = 'image/*';
-        picker.hidden = true;
-        picker.addEventListener('change', () => picker.files[0] && changeAvatar(u, picker.files[0], avatar));
-        avatar.append(picker);
         const name = displayName(u);
 
         const info = document.createElement('div');
@@ -752,27 +744,6 @@
     function removeAvatarFile(url) {
       const path = url && url.split('/avatars/')[1];
       if (path) db.storage.from('avatars').remove([path]);
-    }
-
-    async function changeAvatar(u, file, avatarEl) {
-      setUserMsg(t('uploading'));
-      try {
-        const url = await uploadAvatar(file);
-        const { error } = await db.from('users').update({ avatar_url: url }).eq('id', u.id);
-        if (error) { removeAvatarFile(url); throw error; }
-        removeAvatarFile(u.avatar_url);
-        u.avatar_url = url;
-        const picker = avatarEl.querySelector('input');
-        fillAvatar(avatarEl, u); // clears the label, so put the file input back
-        avatarEl.append(picker);
-        if (u.email.toLowerCase() === currentUser().email.toLowerCase()) {
-          store.set('user', JSON.stringify({ ...currentUser(), avatar_url: url }));
-          updateWho();
-        }
-        setUserMsg(t('photoSaved'), 'ok');
-      } catch (err) {
-        setUserMsg(t('error') + err.message, 'err');
-      }
     }
 
     // ---------- Add / edit user form ----------

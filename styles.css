@@ -278,11 +278,6 @@ main .card { max-width: 640px; margin: 0 auto; }
 /* Avatars with photos */
 .avatar { overflow: hidden; }
 .avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.avatar-edit { cursor: pointer; position: relative; }
-.avatar-edit:hover::after {
-  content: ""; position: absolute; inset: 0; border-radius: 50%;
-  background: rgba(0, 0, 0, .35) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z'/%3E%3Ccircle cx='12' cy='13' r='4'/%3E%3C/svg%3E") center / 50% no-repeat;
-}
 .photo-pick { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
 .photo-circle {
   width: 72px; height: 72px; border-radius: 50%; flex-shrink: 0; cursor: pointer; overflow: hidden;
