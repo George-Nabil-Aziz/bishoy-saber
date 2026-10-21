@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>إدخال البيانات</title>
+  <style>
+    body { font-family: system-ui, "Segoe UI", Tahoma, sans-serif; background: #f4f6f8; margin: 0; padding: 16px; }
+    .card { max-width: 480px; margin: 40px auto; background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    h1 { margin-top: 0; font-size: 22px; }
+    label { display: block; margin: 14px 0 6px; font-weight: 600; }
+    input, textarea { width: 100%; box-sizing: border-box; padding: 10px; border: 1px solid #ccd; border-radius: 8px; font-size: 16px; font-family: inherit; }
+    textarea { min-height: 90px; resize: vertical; }
+    button { margin-top: 20px; width: 100%; padding: 12px; font-size: 17px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; cursor: pointer; }
+    button:disabled { opacity: .6; cursor: wait; }
+    #msg { margin-top: 14px; text-align: center; min-height: 1.2em; }
+    .ok { color: #15803d; } .err { color: #b91c1c; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>إدخال البيانات</h1>
+    <form id="form">
+      <label for="title">العنوان</label>
+      <input id="title" name="title" type="text" required />
+
+      <label for="amount">الرقم</label>
+      <input id="amount" name="amount" type="number" step="any" required />
+
+      <label for="notes">ملاحظات</label>
+      <textarea id="notes" name="notes"></textarea>
+
+      <button type="submit" id="save">Save</button>
+      <div id="msg"></div>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script>
+    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const form = document.getElementById('form');
+    const btn = document.getElementById('save');
+    const msg = document.getElementById('msg');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      msg.textContent = 'جاري الحفظ...';
+      msg.className = '';
+
+      const row = {
+        title: form.title.value.trim(),
+        amount: Number(form.amount.value),
+        notes: form.notes.value.trim() || null,
+      };
+
+      const { error } = await db.from('entries').insert(row);
+
+      if (error) {
+        msg.textContent = 'حصل خطأ: ' + error.message;
+        msg.className = 'err';
+      } else {
+        msg.textContent = 'تم الحفظ ✓';
+        msg.className = 'ok';
+        form.reset();
+      }
+      btn.disabled = false;
+    });
+  </script>
+</body>
+</html>
