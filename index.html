@@ -3,76 +3,217 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>الملاحظات</title>
+  <title>Notes</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script>
+    // Apply saved theme/lang before paint to avoid a flash
+    (function () {
+      try {
+        const theme = localStorage.getItem('theme');
+        if (theme) document.documentElement.dataset.theme = theme;
+        const lang = localStorage.getItem('lang') || 'ar';
+        document.documentElement.lang = lang;
+        document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      } catch {}
+    })();
+  </script>
   <style>
+    :root {
+      --bg: #f6f4ff;
+      --bg-accent: radial-gradient(circle at 15% 0%, #ede9fe 0, transparent 45%), radial-gradient(circle at 90% 100%, #fce7f3 0, transparent 40%);
+      --surface: #ffffff;
+      --surface-hover: #f5f3ff;
+      --text: #1e1b4b;
+      --muted: #6b7280;
+      --border: #e4e0f5;
+      --input-bg: #fbfaff;
+      --primary: #7c3aed;
+      --primary-2: #db2777;
+      --primary-soft: #ede9fe;
+      --sidebar: #1e1b4b;
+      --sidebar-text: #c7c2ea;
+      --sidebar-hover: #2e2a63;
+      --ok: #059669;
+      --err: #dc2626;
+      --shadow: 0 10px 30px rgba(76, 29, 149, .08);
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --bg: #0e0c1a;
+        --bg-accent: radial-gradient(circle at 15% 0%, #2a1d52 0, transparent 45%), radial-gradient(circle at 90% 100%, #3b1530 0, transparent 40%);
+        --surface: #17142a;
+        --surface-hover: #221e3d;
+        --text: #ece9ff;
+        --muted: #9a95bd;
+        --border: #2c2850;
+        --input-bg: #110f22;
+        --primary: #a78bfa;
+        --primary-2: #f472b6;
+        --primary-soft: #2a2350;
+        --sidebar: #0a0915;
+        --sidebar-text: #a9a3d1;
+        --sidebar-hover: #1d1a36;
+        --ok: #34d399;
+        --err: #f87171;
+        --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+      }
+    }
+    :root[data-theme="dark"] {
+      --bg: #0e0c1a;
+      --bg-accent: radial-gradient(circle at 15% 0%, #2a1d52 0, transparent 45%), radial-gradient(circle at 90% 100%, #3b1530 0, transparent 40%);
+      --surface: #17142a;
+      --surface-hover: #221e3d;
+      --text: #ece9ff;
+      --muted: #9a95bd;
+      --border: #2c2850;
+      --input-bg: #110f22;
+      --primary: #a78bfa;
+      --primary-2: #f472b6;
+      --primary-soft: #2a2350;
+      --sidebar: #0a0915;
+      --sidebar-text: #a9a3d1;
+      --sidebar-hover: #1d1a36;
+      --ok: #34d399;
+      --err: #f87171;
+      --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+    }
+
     * { box-sizing: border-box; }
-    body { font-family: system-ui, "Segoe UI", Tahoma, sans-serif; background: #f4f6f8; margin: 0; color: #1f2937; }
+    body {
+      font-family: "Cairo", system-ui, "Segoe UI", Tahoma, sans-serif;
+      background: var(--bg-accent), var(--bg);
+      background-attachment: fixed;
+      margin: 0; color: var(--text); min-height: 100vh;
+      transition: background-color .2s, color .2s;
+    }
     .hidden { display: none !important; }
 
-    .card { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
-    h1 { margin-top: 0; font-size: 22px; }
-    label { display: block; margin: 14px 0 6px; font-weight: 600; }
-    input, textarea { width: 100%; padding: 10px; border: 1px solid #ccd; border-radius: 8px; font-size: 16px; font-family: inherit; }
-    textarea { min-height: 120px; resize: vertical; }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px; box-shadow: var(--shadow); }
+    h1 { margin: 0 0 8px; font-size: 24px; }
+    label { display: block; margin: 16px 0 6px; font-weight: 600; font-size: 14px; color: var(--muted); }
+    input, textarea {
+      width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px;
+      font-size: 16px; font-family: inherit; background: var(--input-bg); color: var(--text);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    input:focus, textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-soft); }
+    textarea { min-height: 130px; resize: vertical; }
     button { font-family: inherit; cursor: pointer; }
-    .btn { margin-top: 20px; width: 100%; padding: 12px; font-size: 17px; border: 0; border-radius: 8px; background: #2563eb; color: #fff; }
+    .btn {
+      margin-top: 22px; width: 100%; padding: 12px; font-size: 17px; font-weight: 700; border: 0; border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff;
+      transition: transform .1s, filter .15s;
+    }
+    .btn:hover { filter: brightness(1.08); }
+    .btn:active { transform: scale(.98); }
     .btn:disabled { opacity: .6; cursor: wait; }
-    .msg { margin-top: 14px; text-align: center; min-height: 1.2em; }
-    .ok { color: #15803d; } .err { color: #b91c1c; }
+    .msg { margin-top: 14px; text-align: center; min-height: 1.4em; }
+    .ok { color: var(--ok); } .err { color: var(--err); }
+
+    /* Toggles */
+    .toggles { display: flex; gap: 8px; }
+    .toggle {
+      height: 38px; min-width: 38px; padding: 0 12px; border-radius: 10px; font-weight: 700; font-size: 14px;
+      border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .toggle:hover { border-color: var(--primary); }
+    .toggle svg { width: 18px; height: 18px; }
 
     /* Login */
-    #login { max-width: 400px; margin: 60px auto; padding: 0 16px; }
-    .persona-title { margin: 28px 0 10px; font-size: 14px; color: #6b7280; text-align: center; }
-    .persona { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; text-align: right; }
-    .persona:hover { border-color: #2563eb; background: #eff6ff; }
-    .avatar { width: 42px; height: 42px; border-radius: 50%; background: #2563eb; color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 18px; flex-shrink: 0; }
-    .persona small { display: block; color: #6b7280; direction: ltr; text-align: right; }
+    #login { max-width: 420px; margin: 0 auto; padding: 20px 16px 40px; }
+    #login .toggles { justify-content: flex-end; margin-bottom: 40px; }
+    .brand { text-align: center; margin-bottom: 20px; }
+    .logo {
+      width: 56px; height: 56px; margin: 0 auto 10px; border-radius: 16px; display: grid; place-items: center;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; font-size: 26px; font-weight: 700;
+    }
+    .brand p { margin: 0; color: var(--muted); }
+    .persona-title { margin: 28px 0 10px; font-size: 14px; color: var(--muted); text-align: center; }
+    .persona {
+      display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; text-align: start;
+      background: var(--surface); border: 1px solid var(--border); border-radius: 14px; color: var(--text);
+      transition: border-color .15s, background .15s;
+    }
+    .persona:hover { border-color: var(--primary); background: var(--surface-hover); }
+    .avatar {
+      width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; font-weight: 700; font-size: 18px;
+    }
+    .persona small { display: block; color: var(--muted); direction: ltr; text-align: start; }
 
     /* App */
     #app { display: flex; min-height: 100vh; }
-    aside { width: 200px; background: #1f2937; color: #fff; padding: 20px 12px; display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
-    aside .who { font-size: 14px; color: #9ca3af; margin: 0 8px 16px; }
-    aside a { color: #e5e7eb; text-decoration: none; padding: 10px 12px; border-radius: 8px; }
-    aside a:hover { background: #374151; }
-    aside a.active { background: #2563eb; color: #fff; }
-    aside .logout { margin-top: auto; background: none; border: 1px solid #4b5563; color: #e5e7eb; padding: 8px; border-radius: 8px; }
-    main { flex: 1; padding: 24px 16px; }
-    main .card { max-width: 560px; margin: 0 auto; }
+    aside {
+      width: 220px; background: var(--sidebar); color: var(--sidebar-text); padding: 20px 14px;
+      display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
+    }
+    .who { display: flex; align-items: center; gap: 10px; margin: 0 4px 20px; color: #fff; font-weight: 600; }
+    .who .avatar { width: 36px; height: 36px; font-size: 15px; }
+    aside a { color: var(--sidebar-text); text-decoration: none; padding: 10px 14px; border-radius: 10px; font-weight: 600; transition: background .15s; }
+    aside a:hover { background: var(--sidebar-hover); color: #fff; }
+    aside a.active { background: linear-gradient(135deg, var(--primary), var(--primary-2)); color: #fff; }
+    .aside-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 10px; }
+    aside .toggle { background: var(--sidebar-hover); border-color: transparent; color: #fff; }
+    .logout { background: none; border: 1px solid #4b4680; color: var(--sidebar-text); padding: 9px; border-radius: 10px; font-weight: 600; }
+    .logout:hover { color: #fff; border-color: var(--primary-2); }
+    main { flex: 1; padding: 32px 16px; }
+    main .card { max-width: 600px; margin: 0 auto; }
 
-    #list { list-style: none; padding: 0; margin: 0; }
-    #list li a { display: flex; justify-content: space-between; gap: 12px; padding: 12px; border-bottom: 1px solid #eee; color: inherit; text-decoration: none; }
-    #list li a:hover { background: #f9fafb; }
-    #list .date { color: #9ca3af; font-size: 13px; white-space: nowrap; }
+    #list { list-style: none; padding: 0; margin: 16px 0 0; }
+    #list li a {
+      display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px;
+      border-radius: 10px; color: inherit; text-decoration: none; font-weight: 600; transition: background .15s;
+    }
+    #list li + li { border-top: 1px solid var(--border); }
+    #list li a:hover { background: var(--surface-hover); color: var(--primary); }
+    #list .date { color: var(--muted); font-size: 13px; font-weight: 400; white-space: nowrap; }
 
-    @media (max-width: 600px) {
+    @media (max-width: 640px) {
       #app { flex-direction: column; }
-      aside { width: 100%; flex-direction: row; align-items: center; padding: 10px; }
-      aside .who { display: none; }
-      aside .logout { margin-top: 0; margin-right: auto; }
+      aside { width: 100%; flex-direction: row; flex-wrap: wrap; align-items: center; padding: 10px 16px; }
+      .who { display: none; }
+      .aside-bottom { margin: 0; margin-inline-start: auto; flex-direction: row; }
+      main { padding: 20px 16px; }
+      .card { padding: 20px; }
     }
   </style>
 </head>
 <body>
 
+  <template id="togglesTpl">
+    <div class="toggles">
+      <button type="button" class="toggle" data-action="lang"></button>
+      <button type="button" class="toggle" data-action="theme" aria-label="Theme"></button>
+    </div>
+  </template>
+
   <!-- Login -->
   <div id="login">
+    <div data-toggles></div>
+    <div class="brand">
+      <div class="logo">✎</div>
+      <h1 data-i18n="appName"></h1>
+      <p data-i18n="welcome"></p>
+    </div>
     <div class="card">
-      <h1>تسجيل الدخول</h1>
       <form id="loginForm">
-        <label for="email">الإيميل</label>
+        <label for="email" data-i18n="email"></label>
         <input id="email" type="email" required dir="ltr" />
-        <label for="password">الباسورد</label>
+        <label for="password" data-i18n="password"></label>
         <input id="password" type="password" required dir="ltr" />
-        <button type="submit" class="btn">Login</button>
+        <button type="submit" class="btn" data-i18n="login"></button>
         <div id="loginMsg" class="msg"></div>
       </form>
     </div>
 
-    <div class="persona-title">اضغط على الاسم لملء البيانات</div>
+    <div class="persona-title" data-i18n="personaHint"></div>
     <button type="button" class="persona" id="persona">
-      <span class="avatar">ب</span>
+      <span class="avatar" data-i18n="initial"></span>
       <span>
-        <strong>Bishoy Saber</strong>
+        <strong data-i18n="userName"></strong>
         <small>bishoy.saber@gmail.com</small>
       </span>
     </button>
@@ -81,34 +222,37 @@
   <!-- App -->
   <div id="app" class="hidden">
     <aside>
-      <div class="who">Bishoy Saber</div>
-      <a href="#/add" data-nav="add">Add note</a>
-      <a href="#/history" data-nav="history">History</a>
-      <button type="button" class="logout" id="logout">خروج</button>
+      <div class="who"><span class="avatar" data-i18n="initial"></span><span data-i18n="userName"></span></div>
+      <a href="#/add" data-nav="add" data-i18n="addNote"></a>
+      <a href="#/history" data-nav="history" data-i18n="history"></a>
+      <div class="aside-bottom">
+        <div data-toggles></div>
+        <button type="button" class="logout" id="logout" data-i18n="logout"></button>
+      </div>
     </aside>
 
     <main>
       <!-- Add / Edit -->
       <div id="editor" class="card">
-        <h1 id="editorTitle">إضافة ملاحظة</h1>
+        <h1 id="editorTitle"></h1>
         <form id="form">
-          <label for="title">العنوان</label>
+          <label for="title" data-i18n="fTitle"></label>
           <input id="title" name="title" type="text" required />
 
-          <label for="amount">الرقم</label>
+          <label for="amount" data-i18n="fAmount"></label>
           <input id="amount" name="amount" type="number" step="any" required />
 
-          <label for="notes">ملاحظات</label>
+          <label for="notes" data-i18n="fNotes"></label>
           <textarea id="notes" name="notes"></textarea>
 
-          <button type="submit" class="btn" id="save">Save</button>
+          <button type="submit" class="btn" id="save" data-i18n="save"></button>
           <div id="msg" class="msg"></div>
         </form>
       </div>
 
       <!-- History -->
       <div id="history" class="card hidden">
-        <h1>History</h1>
+        <h1 data-i18n="history"></h1>
         <ul id="list"></ul>
         <div id="historyMsg" class="msg"></div>
       </div>
@@ -122,10 +266,76 @@
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const $ = (id) => document.getElementById(id);
 
-    // ---------- Login ----------
-    function isLoggedIn() {
-      try { return localStorage.getItem('loggedIn') === '1'; } catch { return false; }
+    const store = {
+      get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+      set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+      del(k) { try { localStorage.removeItem(k); } catch {} },
+    };
+
+    // ---------- Translations ----------
+    const I18N = {
+      ar: {
+        appName: 'ملاحظاتي', welcome: 'أهلاً بيك، سجّل دخولك', email: 'الإيميل', password: 'الباسورد',
+        login: 'دخول', personaHint: 'اضغط على الاسم لملء البيانات', userName: 'بيشوي صابر', initial: 'ب',
+        badLogin: 'الإيميل أو الباسورد غلط', addNote: 'إضافة ملاحظة', history: 'السجل', logout: 'خروج',
+        addTitle: 'إضافة ملاحظة', editTitle: 'تعديل ملاحظة', fTitle: 'العنوان', fAmount: 'الرقم', fNotes: 'ملاحظات',
+        save: 'حفظ', saving: 'جاري الحفظ...', saved: 'تم الحفظ ✓', updated: 'تم التعديل ✓', loading: 'جاري التحميل...',
+        error: 'حصل خطأ: ', empty: 'مافيش ملاحظات لسه', otherLang: 'English',
+      },
+      en: {
+        appName: 'My Notes', welcome: 'Welcome back, please sign in', email: 'Email', password: 'Password',
+        login: 'Login', personaHint: 'Click the name to fill in the details', userName: 'Bishoy Saber', initial: 'B',
+        badLogin: 'Wrong email or password', addNote: 'Add note', history: 'History', logout: 'Logout',
+        addTitle: 'Add note', editTitle: 'Edit note', fTitle: 'Title', fAmount: 'Number', fNotes: 'Notes',
+        save: 'Save', saving: 'Saving...', saved: 'Saved ✓', updated: 'Updated ✓', loading: 'Loading...',
+        error: 'Error: ', empty: 'No notes yet', otherLang: 'عربي',
+      },
+    };
+    let lang = store.get('lang') === 'en' ? 'en' : 'ar';
+    const t = (key) => I18N[lang][key];
+
+    function applyLang() {
+      document.documentElement.lang = lang;
+      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+      document.title = t('appName');
+      document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+      document.querySelectorAll('[data-action="lang"]').forEach((b) => { b.textContent = t('otherLang'); });
+      $('editorTitle').textContent = t(editingId ? 'editTitle' : 'addTitle');
+      if (!$('history').classList.contains('hidden')) loadHistory();
     }
+
+    // ---------- Theme ----------
+    const ICONS = {
+      moon: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+      sun: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>',
+    };
+    const isDark = () => {
+      const set = document.documentElement.dataset.theme;
+      return set ? set === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+    };
+    function applyTheme() {
+      document.querySelectorAll('[data-action="theme"]').forEach((b) => { b.innerHTML = isDark() ? ICONS.sun : ICONS.moon; });
+    }
+
+    // Mount toggles in login page + sidebar
+    document.querySelectorAll('[data-toggles]').forEach((slot) => slot.replaceWith($('togglesTpl').content.cloneNode(true)));
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('[data-action]');
+      if (!btn) return;
+      if (btn.dataset.action === 'lang') {
+        lang = lang === 'ar' ? 'en' : 'ar';
+        store.set('lang', lang);
+        applyLang();
+      } else {
+        const next = isDark() ? 'light' : 'dark';
+        document.documentElement.dataset.theme = next;
+        store.set('theme', next);
+        applyTheme();
+      }
+    });
+
+    // ---------- Login ----------
+    const isLoggedIn = () => store.get('loggedIn') === '1';
 
     $('persona').addEventListener('click', () => {
       $('email').value = USER.email;
@@ -135,17 +345,18 @@
     $('loginForm').addEventListener('submit', (e) => {
       e.preventDefault();
       if ($('email').value.trim().toLowerCase() === USER.email && $('password').value === USER.password) {
-        try { localStorage.setItem('loggedIn', '1'); } catch {}
+        store.set('loggedIn', '1');
+        $('loginMsg').textContent = '';
         location.hash = '#/add';
         render();
       } else {
-        $('loginMsg').textContent = 'الإيميل أو الباسورد غلط';
+        $('loginMsg').textContent = t('badLogin');
         $('loginMsg').className = 'msg err';
       }
     });
 
     $('logout').addEventListener('click', () => {
-      try { localStorage.removeItem('loggedIn'); } catch {}
+      store.del('loggedIn');
       location.hash = '';
       render();
     });
@@ -160,13 +371,13 @@
       if (!loggedIn) return;
 
       const [, page, id] = location.hash.split('/');
-      const view = page === 'history' ? 'history' : 'editor';
-      $('editor').classList.toggle('hidden', view !== 'editor');
-      $('history').classList.toggle('hidden', view !== 'history');
+      const isHistory = page === 'history';
+      $('editor').classList.toggle('hidden', isHistory);
+      $('history').classList.toggle('hidden', !isHistory);
       document.querySelectorAll('[data-nav]').forEach((a) =>
-        a.classList.toggle('active', a.dataset.nav === (page === 'history' ? 'history' : page === 'add' || !page ? 'add' : '')));
+        a.classList.toggle('active', a.dataset.nav === (isHistory || page === 'edit' ? 'history' : 'add')));
 
-      if (page === 'history') loadHistory();
+      if (isHistory) loadHistory();
       else if (page === 'edit' && id) openEdit(id);
       else openAdd();
     }
@@ -180,18 +391,18 @@
 
     function openAdd() {
       editingId = null;
-      $('editorTitle').textContent = 'إضافة ملاحظة';
+      $('editorTitle').textContent = t('addTitle');
       form.reset();
       setMsg('');
     }
 
     async function openEdit(id) {
       editingId = null;
-      $('editorTitle').textContent = 'تعديل ملاحظة';
+      $('editorTitle').textContent = t('editTitle');
       form.reset();
-      setMsg('جاري التحميل...');
+      setMsg(t('loading'));
       const { data, error } = await db.from('entries').select('*').eq('id', id).single();
-      if (error) return setMsg('حصل خطأ: ' + error.message, 'err');
+      if (error) return setMsg(t('error') + error.message, 'err');
       editingId = data.id;
       form.title.value = data.title;
       form.amount.value = data.amount;
@@ -202,7 +413,7 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       $('save').disabled = true;
-      setMsg('جاري الحفظ...');
+      setMsg(t('saving'));
 
       const row = {
         title: form.title.value.trim(),
@@ -215,9 +426,9 @@
         : await db.from('entries').insert(row);
 
       if (error) {
-        setMsg('حصل خطأ: ' + error.message, 'err');
+        setMsg(t('error') + error.message, 'err');
       } else {
-        setMsg(editingId ? 'تم التعديل ✓' : 'تم الحفظ ✓', 'ok');
+        setMsg(t(editingId ? 'updated' : 'saved'), 'ok');
         if (!editingId) form.reset();
       }
       $('save').disabled = false;
@@ -226,17 +437,18 @@
     // ---------- History ----------
     async function loadHistory() {
       const list = $('list');
+      const msg = $('historyMsg');
       list.innerHTML = '';
-      $('historyMsg').textContent = 'جاري التحميل...';
-      $('historyMsg').className = 'msg';
+      msg.textContent = t('loading');
+      msg.className = 'msg';
 
       const { data, error } = await db.from('entries').select('id, title, created_at').order('created_at', { ascending: false });
       if (error) {
-        $('historyMsg').textContent = 'حصل خطأ: ' + error.message;
-        $('historyMsg').className = 'msg err';
+        msg.textContent = t('error') + error.message;
+        msg.className = 'msg err';
         return;
       }
-      $('historyMsg').textContent = data.length ? '' : 'مافيش ملاحظات لسه';
+      msg.textContent = data.length ? '' : t('empty');
 
       for (const note of data) {
         const li = document.createElement('li');
@@ -246,13 +458,15 @@
         title.textContent = note.title;
         const date = document.createElement('span');
         date.className = 'date';
-        date.textContent = new Date(note.created_at).toLocaleDateString('ar-EG');
+        date.textContent = new Date(note.created_at).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB');
         a.append(title, date);
         li.append(a);
         list.append(li);
       }
     }
 
+    applyLang();
+    applyTheme();
     render();
   </script>
 </body>
