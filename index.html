@@ -120,24 +120,76 @@
     </button>
   </div>
 
+  <template id="userFormTpl">
+    <form class="user-form" autocomplete="off">
+      <div>
+        <label data-for="name" class="req" data-i18n="uName"></label>
+        <input data-f="name" type="text" required />
+      </div>
+      <div>
+        <label data-for="email" class="req" data-i18n="email"></label>
+        <input data-f="email" type="email" required dir="ltr" autocomplete="off" />
+      </div>
+      <div class="full">
+        <label data-for="password" data-f="pwLabel" data-i18n="password"></label>
+        <input data-f="password" type="password" minlength="6" dir="ltr" autocomplete="new-password" />
+        <small class="field-hint hidden" data-f="pwHint" data-i18n="pwKeep"></small>
+      </div>
+      <div class="full" data-f="roleBox">
+        <label data-for="role" class="req" data-i18n="role"></label>
+        <select data-f="role">
+          <option value="user" data-i18n="roleUser"></option>
+          <option value="admin" data-i18n="roleAdmin"></option>
+        </select>
+      </div>
+      <div class="full photo-pick">
+        <label data-for="photo" class="photo-circle" data-f="preview" data-i18n-title="choosePhoto"></label>
+        <input data-f="photo" type="file" accept="image/*" hidden />
+        <div>
+          <label data-for="photo" class="photo-btn" data-i18n="choosePhoto"></label>
+          <small data-i18n="photoOptional"></small>
+        </div>
+      </div>
+      <div class="full form-actions">
+        <button type="submit" class="btn" data-f="btn"></button>
+        <a class="btn ghost" data-f="cancel" href="#/users" data-i18n="cancel"></a>
+      </div>
+      <div class="full"><div class="msg" data-f="msg"></div></div>
+    </form>
+  </template>
+
   <!-- ================= App ================= -->
   <div id="app" class="hidden">
+    <header class="topbar">
+      <div class="logo">✎</div>
+      <span class="brand-name" data-i18n="appName"></span>
+      <span class="conn-dot" data-i18n-title="conn_online" id="connDotTop"></span>
+      <div data-toggles></div>
+      <button type="button" class="signout" id="signout" data-i18n-title="signout"><span class="flip" data-icon="logout"></span><span class="nav-label" data-i18n="signout"></span></button>
+    </header>
+
+    <div class="app-body">
     <aside>
-      <div class="who"><span class="avatar" id="whoInitial"></span><span id="whoName"></span></div>
-      <nav>
-        <a href="#/add" data-nav="add"><span data-icon="plus"></span><span data-i18n="addNote"></span></a>
-        <a href="#/history" data-nav="history"><span data-icon="list"></span><span data-i18n="history"></span></a>
-        <a href="#/users" data-nav="users"><span data-icon="users"></span><span data-i18n="users"></span></a>
-      </nav>
-      <div class="aside-bottom">
-        <div data-toggles></div>
-        <button type="button" class="signout" id="signout" data-i18n-title="signout"><span class="flip" data-icon="logout"></span><span data-i18n="signout"></span></button>
+      <div class="who-block">
+        <div class="who"><span class="avatar" id="whoInitial"></span><span id="whoName"></span></div>
+        <div class="conn"><span class="conn-dot"></span><span id="connText"></span></div>
       </div>
+      <nav id="nav"></nav>
     </aside>
 
     <main>
-      <!-- Add / Edit -->
-      <div id="editor" class="card">
+      <!-- Notes table -->
+      <div id="notes" class="card wide">
+        <div class="page-head">
+          <h1 data-i18n="notes"></h1>
+          <a class="btn hidden" id="addNoteBtn" href="#/notes/new"><span data-icon="plus"></span><span data-i18n="addNote"></span></a>
+        </div>
+        <div id="notesTable"></div>
+        <div id="notesMsg" class="msg"></div>
+      </div>
+
+      <!-- Add / Edit note -->
+      <div id="editor" class="card hidden">
         <h1 id="editorTitle"></h1>
         <form id="form">
           <label for="title" class="req" data-i18n="fTitle"></label>
@@ -146,8 +198,8 @@
           <label for="amount" data-i18n="fAmount"></label>
           <input id="amount" name="amount" type="number" step="any" />
 
-          <label for="notes" data-i18n="fNotes"></label>
-          <textarea id="notes" name="notes"></textarea>
+          <label for="notesText" data-i18n="fNotes"></label>
+          <textarea id="notesText" name="notes"></textarea>
 
           <label for="noteImage" data-i18n="fImage"></label>
           <input id="noteImage" type="file" accept="image/*" hidden />
@@ -159,7 +211,10 @@
             <button type="button" class="icon-btn del" id="noteImageRemove" data-i18n-title="removeImage" data-icon="trash"></button>
           </div>
 
-          <button type="submit" class="btn block" id="save" data-i18n="save"></button>
+          <div class="form-actions">
+            <button type="submit" class="btn" id="save" data-i18n="save"></button>
+            <a class="btn ghost" href="#/notes" data-i18n="cancel"></a>
+          </div>
           <div id="msg" class="msg"></div>
         </form>
       </div>
@@ -175,75 +230,101 @@
           <div class="view-num" id="vAmount" dir="ltr"></div>
           <div class="view-label" data-i18n="fNotes"></div>
           <div class="view-notes" id="vNotes"></div>
+          <div class="view-label" data-i18n="createdBy"></div>
+          <div id="vBy"></div>
+          <div class="view-label" data-i18n="editedBy"></div>
+          <div id="vEditedBy"></div>
           <a class="view-image hidden" id="vImageLink" target="_blank" rel="noopener"><img id="vImage" alt="" /></a>
           <div class="view-actions">
-            <a class="btn ghost" href="#/history"><span class="flip" data-icon="back"></span><span data-i18n="history"></span></a>
-            <a class="btn" id="vEdit"><span data-icon="edit"></span><span data-i18n="editBtn"></span></a>
+            <a class="btn ghost" href="#/notes"><span class="flip" data-icon="back"></span><span data-i18n="notes"></span></a>
+            <a class="btn hidden" id="vEdit"><span data-icon="edit"></span><span data-i18n="editBtn"></span></a>
           </div>
         </div>
         <div id="viewMsg" class="msg"></div>
       </div>
 
-      <!-- History -->
-      <div id="history" class="card hidden">
-        <h1 data-i18n="history"></h1>
-        <ul id="list"></ul>
+      <!-- Users table -->
+      <div id="users" class="card wide hidden">
+        <div class="page-head">
+          <h1 data-i18n="users"></h1>
+          <a class="btn" href="#/users/new"><span data-icon="plus"></span><span data-i18n="addUser"></span></a>
+        </div>
+        <div id="usersTable"></div>
+        <div id="usersMsg" class="msg"></div>
+      </div>
+
+      <!-- Add / edit user -->
+      <div id="userEditor" class="card hidden">
+        <h1 id="userEditorTitle"></h1>
+        <div id="userFormHost"></div>
+      </div>
+
+      <!-- History (audit log) -->
+      <div id="history" class="card wide hidden">
+        <div class="page-head"><h1 data-i18n="history"></h1></div>
+        <div class="filters">
+          <select id="fUser"></select>
+          <select id="fAction"></select>
+        </div>
+        <div id="historyTable"></div>
         <div id="historyMsg" class="msg"></div>
       </div>
 
-      <!-- Users -->
-      <div id="users" class="card hidden">
-        <h1 data-i18n="users"></h1>
-        <h2 class="sub-title form-title" id="userFormTitle"></h2>
-        <form id="userForm" class="user-form" autocomplete="off">
-          <div>
-            <label for="uName" class="req" data-i18n="uName"></label>
-            <input id="uName" type="text" required />
-          </div>
-          <div>
-            <label for="uEmail" class="req" data-i18n="email"></label>
-            <input id="uEmail" type="email" required dir="ltr" autocomplete="off" />
-          </div>
-          <div class="full">
-            <label for="uPassword" id="uPasswordLabel" data-i18n="password"></label>
-            <input id="uPassword" type="password" required minlength="6" dir="ltr" autocomplete="new-password" />
-            <small class="field-hint hidden" id="pwHint" data-i18n="pwKeep"></small>
-          </div>
-          <div class="full photo-pick">
-            <label for="uPhoto" class="photo-circle" id="uPreview" data-i18n-title="choosePhoto"></label>
-            <input id="uPhoto" type="file" accept="image/*" hidden />
-            <div>
-              <label for="uPhoto" class="photo-btn" data-i18n="choosePhoto"></label>
-              <small data-i18n="photoOptional"></small>
-            </div>
-          </div>
-          <div class="full form-actions">
-            <button type="submit" class="btn" id="addUserBtn"></button>
-            <button type="button" class="btn ghost hidden" id="cancelEditUser" data-i18n="cancel"></button>
-          </div>
-          <div class="full">
-            <div id="userMsg" class="msg"></div>
-          </div>
-        </form>
+      <!-- Sync -->
+      <div id="sync" class="card wide hidden">
+        <div class="page-head"><h1 data-i18n="sync"></h1></div>
+        <div class="sync-actions">
+          <button type="button" class="btn" id="syncNowBtn"><span data-icon="sync"></span><span data-i18n="syncNow"></span></button>
+          <button type="button" class="btn ghost" id="checkBtn"><span data-icon="list"></span><span data-i18n="checkChanges"></span></button>
+        </div>
+        <h2 class="sub-title" data-i18n="pendingChanges"></h2>
+        <div id="pendingBox"></div>
+        <h2 class="sub-title" data-i18n="conflicts"></h2>
+        <div id="conflictBox"></div>
+        <div id="syncMsg" class="msg"></div>
+      </div>
 
-        <h2 class="sub-title" data-i18n="allUsers"></h2>
-        <div id="userList"></div>
+      <!-- Profile -->
+      <div id="profile" class="card hidden">
+        <div class="profile-head">
+          <span class="avatar" id="pAvatar"></span>
+          <div><h1 id="pName"></h1><small id="pEmail"></small><span class="badge" id="pRole"></span></div>
+        </div>
+        <div id="profileFormHost"></div>
+      </div>
+
+      <!-- What's new -->
+      <div id="whatsNew" class="card hidden">
+        <h1 data-i18n="whatsNew"></h1>
+        <ul class="timeline" id="newsList"></ul>
       </div>
     </main>
+    </div>
   </div>
 
+  <div id="toasts"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
   <script>
     const USER = { email: 'bishoy.saber@gmail.com', password: '123456789' };
     const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const $ = (id) => document.getElementById(id);
+    // Tiny element builder: el('span', 'cls', 'text')
+    const el = (tag, cls, text) => {
+      const e = document.createElement(tag);
+      if (cls) e.className = cls;
+      if (text != null) e.textContent = text;
+      return e;
+    };
 
     const store = {
       get(k) { try { return localStorage.getItem(k); } catch { return null; } },
       set(k, v) { try { localStorage.setItem(k, v); } catch {} },
       del(k) { try { localStorage.removeItem(k); } catch {} },
     };
+    // Last loaded lists, so pages still render offline
+    const cacheGet = (k) => { try { return JSON.parse(store.get('cache:' + k)); } catch { return null; } };
+    const cacheSet = (k, v) => store.set('cache:' + k, JSON.stringify(v));
 
     // ---------- Icons ----------
     const svg = (body) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${body}</svg>`;
@@ -265,6 +346,11 @@
       camera: svg('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>'),
       eye: svg('<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>'),
       eyeOff: svg('<path d="M17.9 17.9A10 10 0 0 1 12 20c-7 0-11-8-11-8a18 18 0 0 1 5.1-5.9M9.9 4.2A9 9 0 0 1 12 4c7 0 11 8 11 8a18 18 0 0 1-2.2 3.2M14.1 14.1a3 3 0 1 1-4.2-4.2M1 1l22 22"/>'),
+      file: svg('<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/>'),
+      clock: svg('<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>'),
+      sync: svg('<path d="M21 12a9 9 0 0 0-15.5-6.2L3 8M3 3v5h5M3 12a9 9 0 0 0 15.5 6.2L21 16M21 21v-5h-5"/>'),
+      star: svg('<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>'),
+      user: svg('<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),
     };
 
     // ---------- Translations ----------
@@ -283,22 +369,66 @@
         choosePhoto: 'اختار صورة', photoOptional: 'اختياري — هتتصغّر تلقائياً',
         uploading: 'جاري رفع الصورة...',
         fImage: 'صورة', addImage: 'اضغط لإضافة صورة (اختياري)', removeImage: 'شيل الصورة',
-        editUser: 'تعديل', userUpdated: 'تم تعديل المستخدم ✓', cancel: 'إلغاء', pwKeep: 'سيبها فاضية لو مش عايز تغير الباسورد',
+        editUser: 'تعديل مستخدم', userUpdated: 'تم تعديل المستخدم ✓', cancel: 'إلغاء', pwKeep: 'سيبها فاضية لو مش عايز تغير الباسورد',
+        notes: 'الملاحظات', whatsNew: 'الجديد', profile: 'حسابي', sync: 'المزامنة',
+        createdBy: 'اتعمل بواسطة', editedBy: 'آخر تعديل بواسطة', colDate: 'التاريخ', colActions: 'إجراءات', noUsers: 'مافيش مستخدمين',
+        role: 'الصلاحية', roleAdmin: 'أدمن', roleUser: 'مستخدم', pending: 'في الانتظار',
+        savedLocal: 'اتحفظ في المتصفح — هيترفع لما الاتصال يرجع',
+        staleCopy: 'بتشوف نسخة محفوظة على الجهاز (مفيش اتصال بالسيرفر)',
+        conn_online: 'متصل', conn_offline: 'مفيش إنترنت', conn_unreachable: 'السيرفر مش متاح',
+        needOnline: 'لازم يبقى فيه اتصال الأول', notFound: 'مش موجود', profileSaved: 'تم حفظ بياناتك ✓',
+        colWhen: 'الوقت', colUser: 'المستخدم', colAction: 'العملية', colTarget: 'الهدف', colDetails: 'التفاصيل',
+        allActions: 'كل العمليات', noHistory: 'مافيش سجل لسه', hideBtn: 'إخفاء',
+        act_login: 'تسجيل دخول', act_logout: 'تسجيل خروج', act_note_add: 'إضافة ملاحظة', act_note_edit: 'تعديل ملاحظة',
+        act_note_delete: 'مسح ملاحظة', act_user_add: 'إضافة مستخدم', act_user_edit: 'تعديل مستخدم', act_user_delete: 'مسح مستخدم',
+        act_profile_edit: 'تعديل الحساب', act_sync: 'مزامنة', act_sync_resolve: 'حل تعارض',
+        syncNow: 'زامن دلوقتي', checkChanges: 'اعرض التغييرات', pendingChanges: 'تغييرات في الانتظار',
+        noPending: 'مافيش تغييرات في الانتظار', conflicts: 'التعارضات', noConflicts: 'مافيش تعارضات',
+        opType: 'النوع', mine: 'نسختي', serverVer: 'نسخة السيرفر', keepMine: 'خلّي نسختي', keepServer: 'خلّي نسخة السيرفر',
+        field: 'الحقل', local: 'عندي', server: 'السيرفر',
+        rChanged: 'اتغيّر على السيرفر', rDeleted: 'اتمسح من السيرفر', rError: 'فشل الرفع: ',
+        changedByAt: 'اتغيّر بواسطة {who} في {when}', deleteOp: 'العملية: مسح', unknown: 'مجهول',
+        uploaded: 'اترفع {n} تغيير', syncConflicts: '{m} تعارض', openSync: 'افتح المزامنة',
+        nothingToSync: 'مافيش حاجة تترفع', resolved: 'تم الحل ✓', syncing: 'جاري المزامنة...',
+        serverChangedWarn: 'السيرفر اتغيّر من وقت ما بدأت التعديل', serverGone: 'مش موجود على السيرفر',
         backHome: 'الرئيسية', startNow: 'ابدأ دلوقتي', openApp: 'افتح ملاحظاتك', learnMore: 'اعرف أكتر',
         heroPill: 'بسيط، سريع، ومتزامن', heroTitle1: 'كل أرقامك وأفكارك', heroTitle2: 'في مكان واحد',
         heroText: 'اكتب ملاحظاتك وأرقامك في ثواني، واحفظها في السحابة، وارجعلها وعدّلها في أي وقت ومن أي جهاز.',
         featuresTitle: 'ليه ملاحظاتي؟', featuresSub: 'كل اللي محتاجه، ومافيش أي حاجة زيادة',
         f1t: 'سريع جداً', f1d: 'اكتب ودوس حفظ، وخلاص. مافيش خطوات كتير ولا تعقيد.',
         f2t: 'محفوظ في السحابة', f2d: 'بياناتك متخزنة على Supabase، فمش هتضيع لو قفلت المتصفح.',
-        f3t: 'عدّل في أي وقت', f3d: 'افتح أي ملاحظة من السجل وعدّلها أو امسحها بضغطة.',
+        f3t: 'عدّل في أي وقت', f3d: 'افتح أي ملاحظة من صفحة الملاحظات وعدّلها أو امسحها بضغطة.',
         f4t: 'عربي وإنجليزي', f4d: 'بدّل اللغة بزرار واحد، والصفحة كلها بتتقلب معاك.',
         f5t: 'وضع ليلي', f5d: 'مريح للعين بالليل، وبيفتكر اختيارك.',
         f6t: 'على الموبايل', f6d: 'شغال كويس على أي شاشة، كبيرة أو صغيرة.',
         stepsTitle: 'إزاي بيشتغل؟', stepsSub: 'تلات خطوات بس',
         s1t: 'سجّل دخولك', s1d: 'اضغط على اسمك وادخل على طول.',
         s2t: 'اكتب ملاحظتك', s2d: 'عنوان، رقم، وشوية تفاصيل.',
-        s3t: 'احفظ وارجعلها', s3d: 'هتلاقيها في السجل في أي وقت.',
+        s3t: 'احفظ وارجعلها', s3d: 'هتلاقيها في صفحة الملاحظات في أي وقت.',
         ctaTitle: 'جاهز تبدأ؟', ctaText: 'أول ملاحظة هتاخد منك أقل من دقيقة.', footer: 'معمول بحب ❤',
+        // Newest first
+        news: [
+          { d: '2026-10-22', h: 'شريط علوي', p: 'اللغة والوضع الليلي وتسجيل الخروج بقوا في شريط ثابت فوق.' },
+          { d: '2026-10-22', h: 'صفحة المزامنة والتعارضات', p: 'شوف التغييرات المستنية، وقارن نسختك بنسخة السيرفر، واختار تحتفظ بأنهي واحدة.' },
+          { d: '2026-10-22', h: 'الحفظ بدون إنترنت والمزامنة التلقائية', p: 'لو مفيش اتصال، التغييرات بتتحفظ في المتصفح وبتترفع لوحدها لما النت يرجع.' },
+          { d: '2026-10-22', h: 'حالة الاتصال', p: 'نقطة ملونة تحت اسمك بتوريك لو إنت متصل، أو أوفلاين، أو السيرفر مش متاح.' },
+          { d: '2026-10-22', h: 'صفحة حسابي', p: 'عدّل اسمك وإيميلك وباسوردك وصورتك من مكان واحد.' },
+          { d: '2026-10-22', h: 'سجل العمليات', p: 'كل دخول وتعديل ومسح بيتسجل: مين عمل إيه ومتى.' },
+          { d: '2026-10-22', h: 'عرض الجداول', p: 'الملاحظات والمستخدمين والسجل بقوا في جداول مرتبة بعمود إجراءات.' },
+          { d: '2026-10-22', h: 'أدمن ومستخدم', p: 'الأدمن بيدير كل حاجة، والمستخدم بيشوف الملاحظات بس.' },
+          { d: '2026-10-21', h: 'رقم الملاحظة اختياري', p: 'تقدر تحفظ ملاحظة من غير رقم.' },
+          { d: '2026-10-21', h: 'صورة اختيارية للملاحظة', p: 'ضيف صورة لأي ملاحظة، وبتتصغّر تلقائياً.' },
+          { d: '2026-10-21', h: 'قائمة جانبية ثابتة', p: 'القائمة بتفضل مكانها والمحتوى بس هو اللي بيتحرك.' },
+          { d: '2026-10-21', h: 'تعديل المستخدمين', p: 'عدّل الاسم والإيميل والباسورد والصورة.' },
+          { d: '2026-10-21', h: 'صور المستخدمين', p: 'كل مستخدم ليه صورة بتظهر في القائمة.' },
+          { d: '2026-10-21', h: 'عرض الملاحظة للقراءة فقط', p: 'افتح الملاحظة وشوفها كاملة من غير ما تعدّل.' },
+          { d: '2026-10-21', h: 'أيقونة الموقع', p: 'الموقع بقى له أيقونة في تبويب المتصفح.' },
+          { d: '2026-10-21', h: 'صفحة المستخدمين وعين الباسورد', p: 'إضافة ومسح المستخدمين، وزرار إظهار الباسورد.' },
+          { d: '2026-10-21', h: 'الصفحة الرئيسية', p: 'صفحة ترحيب بتشرح الموقع قبل الدخول.' },
+          { d: '2026-10-21', h: 'عربي / إنجليزي والوضع الليلي', p: 'بدّل اللغة والمظهر بزرار واحد.' },
+          { d: '2026-10-21', h: 'تسجيل الدخول والقائمة والسجل والتعديل', p: 'دخول بإيميل وباسورد، وسجل للملاحظات وتعديلها.' },
+          { d: '2026-10-21', h: 'إدخال البيانات في Supabase', p: 'أول نسخة: اكتب ملاحظة واحفظها في السحابة.' },
+        ],
       },
       en: {
         appName: 'My Notes', welcome: 'Welcome back, please sign in', email: 'Email', password: 'Password',
@@ -314,26 +444,73 @@
         choosePhoto: 'Choose photo', photoOptional: 'Optional — resized automatically',
         uploading: 'Uploading photo...',
         fImage: 'Image', addImage: 'Click to add an image (optional)', removeImage: 'Remove image',
-        editUser: 'Edit', userUpdated: 'User updated ✓', cancel: 'Cancel', pwKeep: 'Leave empty to keep the current password',
+        editUser: 'Edit user', userUpdated: 'User updated ✓', cancel: 'Cancel', pwKeep: 'Leave empty to keep the current password',
+        notes: 'Notes', whatsNew: 'What\'s new', profile: 'Profile', sync: 'Sync',
+        createdBy: 'Created by', editedBy: 'Last edited by', colDate: 'Date', colActions: 'Actions', noUsers: 'No users',
+        role: 'Role', roleAdmin: 'Admin', roleUser: 'User', pending: 'Pending',
+        savedLocal: 'Saved in the browser — will upload when the connection is back',
+        staleCopy: 'Showing the copy saved on this device (server not reachable)',
+        conn_online: 'Online', conn_offline: 'Offline', conn_unreachable: 'Server unreachable',
+        needOnline: 'You need a connection first', notFound: 'Not found', profileSaved: 'Profile saved ✓',
+        colWhen: 'When', colUser: 'User', colAction: 'Action', colTarget: 'Target', colDetails: 'Details',
+        allActions: 'All actions', noHistory: 'No history yet', hideBtn: 'Hide',
+        act_login: 'Login', act_logout: 'Logout', act_note_add: 'Note added', act_note_edit: 'Note edited',
+        act_note_delete: 'Note deleted', act_user_add: 'User added', act_user_edit: 'User edited', act_user_delete: 'User deleted',
+        act_profile_edit: 'Profile edited', act_sync: 'Sync', act_sync_resolve: 'Conflict resolved',
+        syncNow: 'Sync now', checkChanges: 'Check changes', pendingChanges: 'Pending changes',
+        noPending: 'No pending changes', conflicts: 'Conflicts', noConflicts: 'No conflicts',
+        opType: 'Type', mine: 'Mine', serverVer: 'Server', keepMine: 'Keep mine', keepServer: 'Keep server',
+        field: 'Field', local: 'Local', server: 'Server',
+        rChanged: 'Changed on the server', rDeleted: 'Deleted on the server', rError: 'Upload failed: ',
+        changedByAt: 'Changed by {who} on {when}', deleteOp: 'Operation: delete', unknown: 'unknown',
+        uploaded: 'Uploaded {n} changes', syncConflicts: '{m} conflicts', openSync: 'Open Sync',
+        nothingToSync: 'Nothing to upload', resolved: 'Resolved ✓', syncing: 'Syncing...',
+        serverChangedWarn: 'The server changed since you started editing', serverGone: 'Not on the server',
         backHome: 'Home', startNow: 'Get started', openApp: 'Open your notes', learnMore: 'Learn more',
         heroPill: 'Simple, fast and synced', heroTitle1: 'All your numbers and ideas', heroTitle2: 'in one place',
         heroText: 'Write down notes and numbers in seconds, save them to the cloud, and come back to edit them anytime, from any device.',
         featuresTitle: 'Why My Notes?', featuresSub: 'Everything you need, nothing you don\'t',
         f1t: 'Super fast', f1d: 'Type, hit save, done. No extra steps, no clutter.',
         f2t: 'Saved in the cloud', f2d: 'Your data lives on Supabase, so it\'s safe even if you close the browser.',
-        f3t: 'Edit anytime', f3d: 'Open any note from History to edit or delete it in one click.',
+        f3t: 'Edit anytime', f3d: 'Open any note from the Notes page to edit or delete it in one click.',
         f4t: 'Arabic & English', f4d: 'Switch languages with one button — the whole layout flips with you.',
         f5t: 'Dark mode', f5d: 'Easy on the eyes at night, and it remembers your choice.',
         f6t: 'Mobile friendly', f6d: 'Works nicely on any screen, big or small.',
         stepsTitle: 'How it works', stepsSub: 'Just three steps',
         s1t: 'Sign in', s1d: 'Click your name and you\'re in.',
         s2t: 'Write a note', s2d: 'A title, a number, and some details.',
-        s3t: 'Save & revisit', s3d: 'Find it in History whenever you need it.',
+        s3t: 'Save & revisit', s3d: 'Find it on the Notes page whenever you need it.',
         ctaTitle: 'Ready to start?', ctaText: 'Your first note takes less than a minute.', footer: 'Made with ❤',
+        // Newest first
+        news: [
+          { d: '2026-10-22', h: 'Top header bar', p: 'Language, dark mode and sign out now live in a fixed bar at the top.' },
+          { d: '2026-10-22', h: 'Sync page with conflicts', p: 'See pending changes, compare your version with the server\'s, and choose which one to keep.' },
+          { d: '2026-10-22', h: 'Offline saving and auto sync', p: 'With no connection, changes are saved in the browser and upload by themselves when it\'s back.' },
+          { d: '2026-10-22', h: 'Connection status', p: 'A colored dot under your name shows if you\'re online, offline or the server is unreachable.' },
+          { d: '2026-10-22', h: 'Profile page', p: 'Edit your name, email, password and photo in one place.' },
+          { d: '2026-10-22', h: 'Audit history', p: 'Every login, edit and delete is recorded: who did what, and when.' },
+          { d: '2026-10-22', h: 'Table views', p: 'Notes, users and history are now neat tables with an Actions column.' },
+          { d: '2026-10-22', h: 'Admin and user roles', p: 'Admins manage everything; users can view notes and manage their own profile.' },
+          { d: '2026-10-21', h: 'Optional note number', p: 'You can save a note without a number.' },
+          { d: '2026-10-21', h: 'Optional note image', p: 'Attach an image to any note; it\'s resized automatically.' },
+          { d: '2026-10-21', h: 'Fixed sidebar', p: 'The sidebar stays put and only the content scrolls.' },
+          { d: '2026-10-21', h: 'Editing users', p: 'Change a user\'s name, email, password and photo.' },
+          { d: '2026-10-21', h: 'User photos', p: 'Every user can have a photo shown in the sidebar.' },
+          { d: '2026-10-21', h: 'Read-only note view', p: 'Open a note and read it in full without editing.' },
+          { d: '2026-10-21', h: 'Favicon', p: 'The site now has an icon in the browser tab.' },
+          { d: '2026-10-21', h: 'Users page and password eye', p: 'Add and remove users, plus a show-password button.' },
+          { d: '2026-10-21', h: 'Landing page', p: 'A welcome page that explains the app before you sign in.' },
+          { d: '2026-10-21', h: 'Arabic / English toggle and dark mode', p: 'Switch language and theme with one button.' },
+          { d: '2026-10-21', h: 'Login page, sidebar, history and editing', p: 'Sign in with email and password, browse your notes and edit them.' },
+          { d: '2026-10-21', h: 'Data entry to Supabase', p: 'The first version: write a note and save it to the cloud.' },
+        ],
       },
     };
     let lang = store.get('lang') === 'en' ? 'en' : 'ar';
     const t = (key) => I18N[lang][key];
+    const locale = () => (lang === 'ar' ? 'ar-EG' : 'en-GB');
+    const formatDate = (iso) => new Date(iso).toLocaleDateString(locale());
+    const formatDateTime = (iso) => new Date(iso).toLocaleString(locale(), { dateStyle: 'short', timeStyle: 'short' });
 
     function applyLang() {
       document.documentElement.lang = lang;
@@ -341,17 +518,18 @@
       document.title = t('appName');
       document.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
       document.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
-      document.querySelectorAll('[data-nav]').forEach((a) => { a.title = t(a.dataset.nav === 'add' ? 'addNote' : a.dataset.nav); });
       document.querySelectorAll('[data-action="lang"]').forEach((b) => { b.textContent = t('otherLang'); });
       document.querySelectorAll('[data-enter]').forEach((a) => { a.textContent = t(isLoggedIn() ? 'openApp' : 'startNow'); });
       document.querySelectorAll('.pw-eye').forEach(syncEye);
-      $('editorTitle').textContent = t(editingId ? 'editTitle' : 'addTitle');
-      updateWho();
-      syncUserForm();
-      if ($('app').classList.contains('hidden')) return;
-      if (!$('history').classList.contains('hidden')) loadHistory();
-      if (!$('viewer').classList.contains('hidden')) render();
-      if (!$('users').classList.contains('hidden')) loadUsers();
+      $('editorTitle').textContent = t(editing.id ? 'editTitle' : 'addTitle');
+      for (const f of [uf, pf]) syncUserFormTexts(f);
+      $('userEditorTitle').textContent = t(uf.editing ? 'editUser' : 'addUser');
+      updateConn();
+      if (!isLoggedIn()) return;
+      buildNav();
+      if (!$('profile').classList.contains('hidden')) renderProfileHead();
+      // Re-render pages that are built from data (forms keep what was typed)
+      if (['notes', 'viewer', 'users', 'history', 'sync', 'whatsNew'].includes(curSection) && curRun) curRun();
     }
 
     // ---------- Password eye ----------
@@ -361,19 +539,18 @@
       btn.title = t(shown ? 'hidePw' : 'showPw');
       btn.setAttribute('aria-label', btn.title);
     }
-    document.querySelectorAll('input[type="password"]').forEach((input) => {
-      const wrap = document.createElement('div');
-      wrap.className = 'pw-wrap';
+    function addEye(input) {
+      const wrap = el('div', 'pw-wrap');
       input.replaceWith(wrap);
-      const btn = document.createElement('button');
+      const btn = el('button', 'pw-eye');
       btn.type = 'button';
-      btn.className = 'pw-eye';
       btn.addEventListener('click', () => {
         input.type = input.type === 'password' ? 'text' : 'password';
         syncEye(btn);
       });
       wrap.append(input, btn);
-    });
+    }
+    addEye($('password'));
 
     // ---------- Theme ----------
     const isDark = () => {
@@ -404,16 +581,38 @@
       }
     });
 
-    // ---------- Login ----------
+    // ---------- Toasts ----------
+    // toast('text', 'ok' | 'warn' | 'err', { href, text })
+    function toast(text, kind = '', link) {
+      const box = el('div', 'toast ' + kind);
+      box.append(el('span', null, text));
+      if (link) {
+        const a = el('a', null, link.text);
+        a.href = link.href;
+        box.append(a);
+      }
+      $('toasts').append(box);
+      setTimeout(() => box.remove(), 6500);
+    }
+
+    // ---------- Session / roles ----------
     const isLoggedIn = () => store.get('loggedIn') === '1';
 
-    // Logged-in user as { name, email }; older sessions without it are the owner
+    // Logged-in user as { id, name, email, avatar_url, role }; older sessions without it are the owner
     function currentUser() {
       try { return JSON.parse(store.get('user')) || { email: USER.email }; } catch { return { email: USER.email }; }
     }
     const isOwner = (email) => email.toLowerCase() === USER.email;
+    const isAdmin = () => { const u = currentUser(); return u.role === 'admin' || isOwner(u.email); };
+    const isMe = (u) => u.email.toLowerCase() === currentUser().email.toLowerCase();
     // The owner's default name is translated; a renamed owner shows the new name
     const displayName = (u) => (isOwner(u.email) && (!u.name || u.name === 'Bishoy Saber') ? t('userName') : u.name || u.email);
+    const rawName = (u) => u.name || (isOwner(u.email) ? 'Bishoy Saber' : u.email);
+
+    function saveSession(u) {
+      store.set('user', JSON.stringify(u));
+      updateWho();
+    }
 
     // Shows the user's photo inside an .avatar element, or their first letter
     function fillAvatar(el, u) {
@@ -434,375 +633,104 @@
       fillAvatar($('whoInitial'), u);
     }
 
-    $('persona').addEventListener('click', () => {
-      $('email').value = USER.email;
-      $('password').value = USER.password;
-    });
+    // Re-reads the signed-in user's row (role, photo...) once the server is reachable
+    async function refreshMe() {
+      if (net !== 'online') return;
+      const { data } = await db.from('users').select('id, name, email, avatar_url, role').eq('email', currentUser().email).maybeSingle();
+      if (!data) return;
+      const wasAdmin = isAdmin();
+      saveSession(data);
+      if (wasAdmin !== isAdmin()) { buildNav(); render(); }
+    }
 
-    $('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = $('email').value.trim().toLowerCase();
-      const password = $('password').value;
-      const btn = e.submitter;
-      btn.disabled = true;
+    // ---------- Connection status ----------
+    let net = navigator.onLine ? 'online' : 'offline'; // online | offline | unreachable
+    const isNetErr = (e) => /fetch|network|timeout|load failed/i.test((e && e.message) || '');
 
-      const { data, error } = await db.from('users').select('name, email, avatar_url')
-        .eq('email', email).eq('password', password).maybeSingle();
-      btn.disabled = false;
+    function updateConn() {
+      document.querySelectorAll('.conn-dot').forEach((d) => { d.className = 'conn-dot ' + net; d.title = t('conn_' + net); });
+      $('connText').textContent = t('conn_' + net);
+    }
 
-      // Owner can still sign in with the default password if the users table is unreachable
-      const user = data || (error && email === USER.email && password === USER.password ? { email } : null);
-      if (user) {
-        store.set('loggedIn', '1');
-        store.set('user', JSON.stringify(user));
-        $('loginMsg').textContent = '';
-        updateWho();
-        location.hash = '#/add';
+    async function checkStatus() {
+      if (!isLoggedIn()) return;
+      let s = 'online';
+      if (!navigator.onLine) {
+        s = 'offline';
       } else {
-        $('loginMsg').textContent = error ? t('error') + error.message : t('badLogin');
-        $('loginMsg').className = 'msg err';
+        const ping = db.from('users').select('id').limit(1);
+        const timeout = new Promise((r) => setTimeout(() => r({ error: { message: 'timeout' } }), 6000));
+        const res = await Promise.race([ping, timeout]).catch((error) => ({ error }));
+        if (res.error && isNetErr(res.error)) s = 'unreachable';
       }
-    });
-
-    $('signout').addEventListener('click', () => {
-      store.del('loggedIn');
-      store.del('user');
-      $('loginForm').reset();
-      location.hash = '#/';
-    });
-
-    // ---------- Routing: #/ (landing), #/login, #/add, #/history, #/edit/<id>, #/users ----------
-    let editingId = null;
-
-    function show(view) {
-      for (const v of ['landing', 'login', 'app']) $(v).classList.toggle('hidden', v !== view);
-      window.scrollTo(0, 0);
-      document.querySelector('main').scrollTop = 0; // the app's content scrolls inside <main>
+      net = s;
+      updateConn();
+      if (s === 'online') syncNow();
     }
+    window.addEventListener('online', checkStatus);
+    window.addEventListener('offline', checkStatus);
+    setInterval(checkStatus, 20000);
 
-    function render() {
-      const [, page, id] = location.hash.split('/');
-      const loggedIn = isLoggedIn();
-      document.querySelectorAll('[data-enter]').forEach((a) => {
-        a.href = loggedIn ? '#/add' : '#/login';
-        a.textContent = t(loggedIn ? 'openApp' : 'startNow');
-      });
-
-      if (!page) return show('landing');
-      if (page === 'login') return loggedIn ? (location.hash = '#/add') : show('login');
-      if (!loggedIn) return (location.hash = '#/login');
-
-      show('app');
-      const section = page === 'history' || page === 'users' ? page : page === 'view' && id ? 'viewer' : 'editor';
-      for (const s of ['editor', 'viewer', 'history', 'users']) $(s).classList.toggle('hidden', s !== section);
-      const activeNav = page === 'edit' || page === 'view' ? 'history' : section === 'editor' ? 'add' : section;
-      document.querySelectorAll('[data-nav]').forEach((a) => a.classList.toggle('active', a.dataset.nav === activeNav));
-
-      if (section === 'history') loadHistory();
-      else if (section === 'users') loadUsers();
-      else if (section === 'viewer') openView(id);
-      else if (page === 'edit' && id) openEdit(id);
-      else openAdd();
-    }
-
-    window.addEventListener('hashchange', (e) => {
-      // In-page anchor links like #features: scroll, don't route
-      if (location.hash && !location.hash.startsWith('#/')) {
-        const target = document.querySelector(location.hash);
-        history.replaceState(null, '', new URL(e.oldURL).hash || '#/');
-        if (target) target.scrollIntoView({ behavior: 'smooth' });
-        return;
-      }
-      render();
-    });
-
-    // ---------- Add / Edit ----------
-    const form = $('form');
-
-    function setMsg(text, cls = '') { $('msg').textContent = text; $('msg').className = 'msg ' + cls; }
-
-    // Note image state: the saved URL, a newly picked file, or a request to remove it
-    const noteImage = { url: null, file: null, cleared: false };
-
-    function showNoteImage(src) {
-      $('noteImagePreview').classList.toggle('hidden', !src);
-      $('noteImageDrop').classList.toggle('hidden', !!src);
-      if (src) $('noteImageImg').src = src;
-    }
-
-    function resetNoteImage(url = null) {
-      Object.assign(noteImage, { url, file: null, cleared: false });
-      $('noteImage').value = '';
-      showNoteImage(url);
-    }
-
-    $('noteImage').addEventListener('change', () => {
-      const file = $('noteImage').files[0];
-      if (!file) return;
-      noteImage.file = file;
-      showNoteImage(URL.createObjectURL(file));
-    });
-
-    $('noteImageRemove').addEventListener('click', () => {
-      noteImage.file = null;
-      noteImage.cleared = !!noteImage.url;
-      $('noteImage').value = '';
-      showNoteImage(null);
-    });
-
-    function openAdd() {
-      editingId = null;
-      $('editorTitle').textContent = t('addTitle');
-      form.reset();
-      resetNoteImage();
-      setMsg('');
-    }
-
-    async function openEdit(id) {
-      editingId = null;
-      $('editorTitle').textContent = t('editTitle');
-      form.reset();
-      resetNoteImage();
-      setMsg(t('loading'));
-      const { data, error } = await db.from('entries').select('*').eq('id', id).single();
-      if (error) return setMsg(t('error') + error.message, 'err');
-      editingId = data.id;
-      form.title.value = data.title;
-      form.amount.value = data.amount ?? '';
-      form.notes.value = data.notes || '';
-      resetNoteImage(data.image_url);
-      setMsg('');
-    }
-
-    const formatDate = (iso) => new Date(iso).toLocaleDateString(lang === 'ar' ? 'ar-EG' : 'en-GB');
-
-    async function openView(id) {
-      $('viewBody').classList.add('hidden');
-      $('viewMsg').textContent = t('loading');
-      $('viewMsg').className = 'msg';
-      const { data, error } = await db.from('entries').select('*').eq('id', id).single();
-      if (error) {
-        $('viewMsg').textContent = t('error') + error.message;
-        $('viewMsg').className = 'msg err';
-        return;
-      }
-      $('vTitle').textContent = data.title;
-      $('vDate').textContent = formatDate(data.created_at);
-      $('vAmount').textContent = data.amount ?? '—';
-      $('vNotes').textContent = data.notes || '—';
-      $('vImageLink').classList.toggle('hidden', !data.image_url);
-      if (data.image_url) {
-        $('vImage').src = data.image_url;
-        $('vImageLink').href = data.image_url;
-      }
-      $('vEdit').href = '#/edit/' + data.id;
-      $('viewMsg').textContent = '';
-      $('viewBody').classList.remove('hidden');
-    }
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      $('save').disabled = true;
-      setMsg(t('saving'));
-
-      const row = {
-        title: form.title.value.trim(),
-        amount: form.amount.value === '' ? null : Number(form.amount.value),
-        notes: form.notes.value.trim() || null,
+    // ---------- Offline queue (IndexedDB) ----------
+    // Stores: "queue" = operations waiting to upload, "conflicts" = operations that need a decision
+    const idbOpen = () => new Promise((resolve, reject) => {
+      const req = indexedDB.open('notes-offline', 1);
+      req.onupgradeneeded = () => {
+        req.result.createObjectStore('queue', { keyPath: 'qid', autoIncrement: true });
+        req.result.createObjectStore('conflicts', { keyPath: 'qid' });
       };
-
-      let newUrl = null;
-      try {
-        if (noteImage.file) {
-          setMsg(t('uploading'));
-          newUrl = row.image_url = await uploadImage(NOTE_IMAGES, noteImage.file, 1280, false);
-          setMsg(t('saving'));
-        } else if (noteImage.cleared) {
-          row.image_url = null;
-        }
-
-        const { error } = editingId
-          ? await db.from('entries').update(row).eq('id', editingId)
-          : await db.from('entries').insert(row);
-
-        if (error) {
-          removeImage(NOTE_IMAGES, newUrl);
-          setMsg(t('error') + error.message, 'err');
-        } else {
-          // The old image is no longer used once replaced or removed
-          if (newUrl || noteImage.cleared) removeImage(NOTE_IMAGES, noteImage.url);
-          setMsg(t(editingId ? 'updated' : 'saved'), 'ok');
-          if (editingId) {
-            resetNoteImage(newUrl || (noteImage.cleared ? null : noteImage.url));
-          } else {
-            form.reset();
-            resetNoteImage();
-          }
-        }
-      } catch (err) {
-        setMsg(t('error') + err.message, 'err');
-      }
-      $('save').disabled = false;
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
     });
+    async function idbDo(storeName, mode, fn) {
+      const d = await idbOpen();
+      return new Promise((resolve, reject) => {
+        const tx = d.transaction(storeName, mode);
+        const req = fn(tx.objectStore(storeName));
+        tx.oncomplete = () => { d.close(); resolve(req && req.result); };
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+    const qAll = async (s = 'queue') => (await idbDo(s, 'readonly', (o) => o.getAll())).sort((a, b) => a.qid - b.qid);
+    const qPut = (it, s = 'queue') => idbDo(s, 'readwrite', (o) => o.put(it));
+    const qDel = (qid, s = 'queue') => idbDo(s, 'readwrite', (o) => o.delete(qid));
 
-    // ---------- History ----------
-    async function loadHistory() {
-      const list = $('list');
-      const msg = $('historyMsg');
-      list.innerHTML = '';
-      msg.textContent = t('loading');
-      msg.className = 'msg';
+    // Non-admins only see their own operations
+    const visibleOps = (items) => items.filter((it) => it.kind !== 'audit' && (isAdmin() || it.by === currentUser().email));
 
-      const { data, error } = await db.from('entries').select('*').order('created_at', { ascending: false });
-      if (error) {
-        msg.textContent = t('error') + error.message;
-        msg.className = 'msg err';
-        return;
-      }
-      msg.textContent = data.length ? '' : t('empty');
-
-      for (const note of data) {
-        const li = document.createElement('li');
-
-        const open = document.createElement('a');
-        open.className = 'open';
-        open.href = '#/edit/' + note.id;
-        const title = document.createElement('span');
-        title.textContent = note.title;
-        const date = document.createElement('span');
-        date.className = 'date';
-        date.textContent = formatDate(note.created_at);
-        if (note.image_url) {
-          const thumb = document.createElement('img');
-          thumb.className = 'thumb';
-          thumb.src = note.image_url;
-          thumb.alt = '';
-          thumb.loading = 'lazy';
-          title.prepend(thumb);
-        }
-        open.append(title, date);
-
-        const view = document.createElement('a');
-        view.className = 'icon-btn edit';
-        view.href = '#/view/' + note.id;
-        view.title = t('viewBtn');
-        view.innerHTML = ICONS.eye;
-
-        const edit = document.createElement('a');
-        edit.className = 'icon-btn edit';
-        edit.href = '#/edit/' + note.id;
-        edit.title = t('editBtn');
-        edit.innerHTML = ICONS.edit;
-
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'icon-btn del';
-        del.title = t('delBtn');
-        del.innerHTML = ICONS.trash;
-        del.addEventListener('click', () => deleteNote(note, li, del));
-
-        li.append(open, view, edit, del);
-        list.append(li);
-      }
+    async function refreshPending() {
+      try {
+        const n = visibleOps(await qAll()).length + visibleOps(await qAll('conflicts')).length;
+        document.querySelectorAll('[data-nav="sync"] .count').forEach((c) => { c.textContent = n || ''; });
+      } catch {}
     }
 
-    // First click arms the button ("Sure?") and returns false; second click within 3s returns true
-    function confirmed(btn) {
-      if (!btn.classList.contains('confirm')) {
-        btn.classList.add('confirm');
-        btn.textContent = t('confirmDel');
-        btn._timer = setTimeout(() => { btn.classList.remove('confirm'); btn.innerHTML = ICONS.trash; }, 3000);
-        return false;
-      }
-      clearTimeout(btn._timer);
-      return true;
+    // A queued operation. kind: note-add|note-edit|note-delete|user-add|user-edit|user-delete|audit
+    function baseItem(kind, targetId, row, label, auditInfo) {
+      const u = currentUser();
+      return { kind, targetId, row, label, audit: auditInfo, by: u.email, byName: rawName(u), at: new Date().toISOString(), base_updated_at: null };
     }
 
-    async function deleteNote(note, li, btn) {
-      if (!confirmed(btn)) return;
-      btn.disabled = true;
-      const { error } = await db.from('entries').delete().eq('id', note.id);
-      if (error) {
-        btn.disabled = false;
-        $('historyMsg').textContent = t('error') + error.message;
-        $('historyMsg').className = 'msg err';
-        return;
-      }
-      removeImage(NOTE_IMAGES, note.image_url);
-      li.remove();
-      if (!$('list').children.length) $('historyMsg').textContent = t('empty');
-    }
-
-    // ---------- Users ----------
-    function setUserMsg(text, cls = '') { $('userMsg').textContent = text; $('userMsg').className = 'msg ' + cls; }
-
-    async function loadUsers() {
-      const list = $('userList');
-      list.innerHTML = '';
-      setUserMsg(t('loading'));
-
-      const { data, error } = await db.from('users').select('id, name, email, avatar_url').order('created_at');
-      if (error) return setUserMsg(t('error') + error.message, 'err');
-      setUserMsg('');
-
-      const me = currentUser().email.toLowerCase();
-      for (const u of data) {
-        const row = document.createElement('div');
-        row.className = 'user-row';
-
-        const avatar = document.createElement('span');
-        avatar.className = 'avatar';
-        fillAvatar(avatar, u);
-        const name = displayName(u);
-
-        const info = document.createElement('div');
-        info.className = 'user-info';
-        const strong = document.createElement('strong');
-        strong.textContent = name;
-        const small = document.createElement('small');
-        small.textContent = u.email;
-        info.append(strong, small);
-        row.append(avatar, info);
-
-        // The owner and the signed-in user can't be removed
-        const tag = isOwner(u.email) ? 'owner' : u.email.toLowerCase() === me ? 'you' : null;
-        if (tag) {
-          const badge = document.createElement('span');
-          badge.className = 'badge';
-          badge.textContent = t(tag);
-          row.append(badge);
-        }
-
-        const edit = document.createElement('button');
-        edit.type = 'button';
-        edit.className = 'icon-btn edit';
-        edit.title = t('editBtn');
-        edit.innerHTML = ICONS.edit;
-        edit.addEventListener('click', () => startEditUser(u));
-
-        const del = document.createElement('button');
-        del.type = 'button';
-        del.className = 'icon-btn del';
-        del.title = t('delBtn');
-        del.innerHTML = ICONS.trash;
-        del.disabled = !!tag;
-        del.addEventListener('click', () => deleteUser(u, row, del));
-        row.append(edit, del);
-
-        list.append(row);
+    // ---------- Audit log ----------
+    // Never throws: a failed audit must not break the real action. Offline rows are queued.
+    async function audit(action, targetType, targetId, details, o = {}) {
+      const u = currentUser();
+      const row = {
+        user_email: o.email || u.email, user_name: o.name || rawName(u), action,
+        target_type: targetType || null, target_id: targetId == null ? null : String(targetId),
+        details: details || null, created_at: o.at || new Date().toISOString(),
+      };
+      try {
+        if (net !== 'online') throw new Error('Failed to fetch');
+        const { error } = await db.from('audit_log').insert(row);
+        if (error) throw error;
+      } catch (e) {
+        if (isNetErr(e)) { try { await qPut({ kind: 'audit', row, at: row.created_at }); } catch {} }
       }
     }
-
-    async function deleteUser(u, row, btn) {
-      if (!confirmed(btn)) return;
-      btn.disabled = true;
-      const { error } = await db.from('users').delete().eq('id', u.id);
-      if (error) {
-        btn.disabled = false;
-        return setUserMsg(t('error') + error.message, 'err');
-      }
-      removeAvatarFile(u.avatar_url);
-      row.remove();
+    function auditItem(it, d) {
+      const a = it.audit;
+      if (a) audit(a.action, a.targetType, d && d.id != null ? d.id : a.targetId, a.details, { at: it.at, email: it.by, name: it.byName });
     }
 
     // ---------- Images (Supabase Storage buckets "avatars" and "note-images") ----------
@@ -840,113 +768,982 @@
       if (path) db.storage.from(bucket).remove([path]);
     }
 
-    const uploadAvatar = (file) => uploadImage('avatars', file, 256, true);
-    const removeAvatarFile = (url) => removeImage('avatars', url);
+    // ---------- Applying an operation to the server ----------
+    const must = ({ data, error }) => { if (error) throw error; return data; };
+    const conflict = (reason, server) => Object.assign(new Error('conflict'), { conflict: reason, server });
+    const userQ = (q, it) => (it.targetId ? q.eq('id', it.targetId) : q.eq('email', it.targetEmail));
 
-    // ---------- Add / edit user form ----------
-    let editingUser = null; // the user being edited, or null when adding
-
-    function showPhotoPreview(src) {
-      const p = $('uPreview');
-      if (!src) {
-        p.innerHTML = ICONS.camera;
-        p.classList.remove('has-photo');
-        return;
-      }
-      const img = document.createElement('img');
-      img.src = src;
-      p.replaceChildren(img);
-      p.classList.add('has-photo');
-    }
-    $('uPhoto').addEventListener('change', () => {
-      const file = $('uPhoto').files[0];
-      showPhotoPreview(file ? URL.createObjectURL(file) : editingUser && editingUser.avatar_url);
-    });
-
-    // Updates the form's title, button and password rules for add vs. edit mode
-    function syncUserForm() {
-      const editing = !!editingUser;
-      $('userFormTitle').textContent = editing ? t('editUser') + ': ' + displayName(editingUser) : t('addUser');
-      $('addUserBtn').textContent = t(editing ? 'save' : 'addUser');
-      $('cancelEditUser').classList.toggle('hidden', !editing);
-      $('uPassword').required = !editing;
-      $('uPasswordLabel').classList.toggle('req', !editing);
-      $('pwHint').classList.toggle('hidden', !editing);
-      // The owner's email is fixed (it protects the account from being deleted)
-      $('uEmail').readOnly = editing && isOwner(editingUser.email);
-    }
-
-    function startEditUser(u) {
-      editingUser = u;
-      $('userForm').reset();
-      $('uName').value = u.name;
-      $('uEmail').value = u.email;
-      showPhotoPreview(u.avatar_url);
-      setUserMsg('');
-      syncUserForm();
-      $('userFormTitle').scrollIntoView({ behavior: 'smooth', block: 'center' });
-      $('uName').focus({ preventScroll: true });
-    }
-
-    function stopEditUser() {
-      editingUser = null;
-      $('userForm').reset();
-      showPhotoPreview(null);
-      syncUserForm();
-    }
-    $('cancelEditUser').addEventListener('click', () => { stopEditUser(); setUserMsg(''); });
-
-    $('userForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      $('addUserBtn').disabled = true;
-
-      const editing = editingUser;
-      const row = {
-        name: $('uName').value.trim(),
-        email: $('uEmail').value.trim().toLowerCase(),
-      };
-      if ($('uPassword').value) row.password = $('uPassword').value;
-
-      let newPhoto = null;
-      const file = $('uPhoto').files[0];
+    // Uploads/removes the item's image around `write(row)`; cleans up if the write fails
+    async function withImage(it, oldUrl, write) {
+      const [bucket, col, max, square] = it.kind.startsWith('user') ? ['avatars', 'avatar_url', 256, true] : [NOTE_IMAGES, 'image_url', 1280, false];
+      const row = { ...it.row };
+      let url = null;
+      if (it.imageFile) url = row[col] = await uploadImage(bucket, it.imageFile, max, square);
+      else if (it.imageCleared) row[col] = null;
       try {
-        if (file) {
-          setUserMsg(t('uploading'));
-          newPhoto = row.avatar_url = await uploadAvatar(file);
-        }
-        setUserMsg(t('saving'));
-        const { error } = editing
-          ? await db.from('users').update(row).eq('id', editing.id)
-          : await db.from('users').insert(row);
-        if (error) {
-          removeAvatarFile(newPhoto);
-          return setUserMsg(error.code === '23505' ? t('userExists') : t('error') + error.message, 'err');
-        }
+        const out = await write(row);
+        if (it.imageFile || it.imageCleared) removeImage(bucket, oldUrl);
+        return out;
+      } catch (e) {
+        removeImage(bucket, url);
+        throw e;
+      }
+    }
 
-        if (editing) {
-          if (newPhoto) removeAvatarFile(editing.avatar_url);
-          // Keep the sidebar in sync when editing yourself
-          if (editing.email.toLowerCase() === currentUser().email.toLowerCase()) {
-            store.set('user', JSON.stringify({
-              name: row.name, email: row.email, avatar_url: newPhoto || editing.avatar_url,
-            }));
-            updateWho();
+    // force=false: edits/deletes of notes whose server copy changed throw a conflict instead
+    async function applyItem(it, force) {
+      const now = new Date().toISOString();
+      switch (it.kind) {
+        case 'audit':
+          must(await db.from('audit_log').insert(it.row));
+          return null;
+        case 'note-add':
+          return withImage(it, null, async (row) => must(await db.from('entries')
+            .insert({ ...row, created_at: it.at, created_by: it.by, updated_by: it.by, updated_at: now }).select().single()));
+        case 'note-edit': {
+          const cur = must(await db.from('entries').select('*').eq('id', it.targetId).maybeSingle());
+          if (!cur && !force) throw conflict('deleted', null);
+          if (cur && !force && cur.updated_at !== it.base_updated_at) throw conflict('changed', cur);
+          return withImage(it, cur && cur.image_url, async (row) => must(cur
+            ? await db.from('entries').update({ ...row, updated_at: now, updated_by: it.by }).eq('id', it.targetId).select().single()
+            : await db.from('entries').insert({ ...row, created_by: it.by, updated_by: it.by, updated_at: now }).select().single()));
+        }
+        case 'note-delete': {
+          const cur = must(await db.from('entries').select('*').eq('id', it.targetId).maybeSingle());
+          if (!cur) return null;
+          if (!force && cur.updated_at !== it.base_updated_at) throw conflict('changed', cur);
+          must(await db.from('entries').delete().eq('id', it.targetId));
+          removeImage(NOTE_IMAGES, cur.image_url);
+          return null;
+        }
+        case 'user-add':
+          return withImage(it, null, async (row) => must(await db.from('users').insert(row).select('id').single()));
+        case 'user-edit': {
+          const cur = must(await userQ(db.from('users').select('id, avatar_url'), it).maybeSingle());
+          if (!cur) throw force ? new Error(t('notFound')) : conflict('deleted', null);
+          return withImage(it, cur.avatar_url, async (row) => must(await userQ(db.from('users').update(row), it).select('id, avatar_url').single()));
+        }
+        case 'user-delete': {
+          const cur = must(await db.from('users').select('id, avatar_url').eq('id', it.targetId).maybeSingle());
+          if (!cur) return null;
+          must(await db.from('users').delete().eq('id', it.targetId));
+          removeImage('avatars', cur.avatar_url);
+          return null;
+        }
+      }
+    }
+
+    // Runs an operation now when online, otherwise queues it. Throws real (non-network) errors.
+    async function runOp(it) {
+      if (net === 'online') {
+        try {
+          const data = await applyItem(it, true);
+          if (it.qid) await qDel(it.qid); // supersedes an older queued version
+          auditItem(it, data);
+          return { mode: 'online', data };
+        } catch (err) {
+          if (!isNetErr(err)) throw err;
+        }
+      }
+      it.qid = await qPut(it);
+      refreshPending();
+      return { mode: 'queued' };
+    }
+
+    // ---------- Auto sync ----------
+    let syncing = false;
+    let meChecked = false;
+
+    async function syncNow() {
+      if (syncing || net !== 'online') return null;
+      syncing = true;
+      let done = 0, conf = 0, userOps = false;
+      try {
+        for (const it of await qAll()) {
+          try {
+            const data = await applyItem(it, false);
+            await qDel(it.qid);
+            if (it.kind !== 'audit') { done++; auditItem(it, data); }
+            if (it.kind.startsWith('user')) userOps = true;
+          } catch (err) {
+            if (isNetErr(err)) break; // connection dropped, try again later
+            await qDel(it.qid);
+            if (it.kind === 'audit') continue;
+            await qPut({ ...it, reason: err.conflict || 'error', server: err.server || null, error: err.conflict ? null : err.message, found: new Date().toISOString() }, 'conflicts');
+            conf++;
           }
         }
-        stopEditUser();
-        await loadUsers();
-        setUserMsg(t(editing ? 'userUpdated' : 'userAdded'), 'ok');
-      } catch (err) {
-        setUserMsg(t('error') + err.message, 'err');
-      } finally {
-        $('addUserBtn').disabled = false;
+      } catch {} finally { syncing = false; }
+      if (!meChecked || userOps) { meChecked = true; await refreshMe(); }
+      if (done || conf) {
+        if (done) toast(t('uploaded').replace('{n}', done), 'ok');
+        if (conf) toast(t('syncConflicts').replace('{m}', conf), 'warn', { href: '#/sync', text: t('openSync') });
+        audit('sync', 'sync', null, { count: done, conflicts: conf });
+        if (['notes', 'viewer', 'users', 'sync'].includes(curSection) && curRun) curRun();
+      }
+      refreshPending();
+      return { done, conf };
+    }
+
+    // ---------- Login ----------
+    $('persona').addEventListener('click', () => {
+      $('email').value = USER.email;
+      $('password').value = USER.password;
+    });
+
+    $('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = $('email').value.trim().toLowerCase();
+      const password = $('password').value;
+      const btn = e.submitter;
+      btn.disabled = true;
+
+      const { data, error } = await db.from('users').select('id, name, email, avatar_url, role')
+        .eq('email', email).eq('password', password).maybeSingle();
+      btn.disabled = false;
+
+      // Owner can still sign in with the default password if the users table is unreachable
+      const user = data || (error && email === USER.email && password === USER.password ? { email } : null);
+      if (user) {
+        store.set('loggedIn', '1');
+        store.set('user', JSON.stringify(user));
+        $('loginMsg').textContent = '';
+        net = 'online';
+        updateWho();
+        audit('login', 'session', null, null);
+        location.hash = '#/notes';
+        checkStatus();
+      } else {
+        $('loginMsg').textContent = error ? t('error') + error.message : t('badLogin');
+        $('loginMsg').className = 'msg err';
       }
     });
-    stopEditUser();
 
+    $('signout').addEventListener('click', () => {
+      audit('logout', 'session', null, null);
+      store.del('loggedIn');
+      store.del('user');
+      $('loginForm').reset();
+      location.hash = '#/';
+    });
+
+    // ---------- Navigation (differs per role) ----------
+    const NAVS = { admin: ['notes', 'users', 'history', 'sync', 'whatsNew', 'profile'], user: ['notes', 'profile', 'sync', 'whatsNew'] };
+    const NAV_ICON = { notes: 'file', users: 'users', history: 'clock', sync: 'sync', whatsNew: 'star', profile: 'user' };
+    let curNav = null;
+
+    function buildNav() {
+      const nav = $('nav');
+      nav.innerHTML = '';
+      for (const k of NAVS[isAdmin() ? 'admin' : 'user']) {
+        const a = el('a');
+        a.href = '#/' + (k === 'whatsNew' ? 'whats-new' : k);
+        a.dataset.nav = k;
+        a.title = t(k);
+        a.classList.toggle('active', k === curNav);
+        a.append(el('span'), el('span', 'nav-label', t(k)));
+        a.firstChild.innerHTML = ICONS[NAV_ICON[k]];
+        if (k === 'sync') a.append(el('span', 'count'));
+        nav.append(a);
+      }
+      refreshPending();
+    }
+
+    // ---------- Routing ----------
+    // #/notes, #/notes/new, #/notes/edit/<id>, #/notes/view/<id>, #/users, #/users/new, #/users/edit/<id>,
+    // #/history, #/sync, #/profile, #/whats-new
+    let curSection = null, curRun = null;
+    const SECTIONS = ['notes', 'editor', 'viewer', 'users', 'userEditor', 'history', 'sync', 'profile', 'whatsNew'];
+    const SECTION_NAV = { notes: 'notes', editor: 'notes', viewer: 'notes', users: 'users', userEditor: 'users', history: 'history', sync: 'sync', profile: 'profile', whatsNew: 'whatsNew' };
+
+    function show(view) {
+      for (const v of ['landing', 'login', 'app']) $(v).classList.toggle('hidden', v !== view);
+      window.scrollTo(0, 0);
+      document.querySelector('main').scrollTop = 0; // the app's content scrolls inside <main>
+    }
+
+    function render() {
+      const [, page, sub, id] = location.hash.split('/');
+      const loggedIn = isLoggedIn();
+      document.querySelectorAll('[data-enter]').forEach((a) => {
+        a.href = loggedIn ? '#/notes' : '#/login';
+        a.textContent = t(loggedIn ? 'openApp' : 'startNow');
+      });
+
+      if (!page) return show('landing');
+      if (page === 'login') return loggedIn ? (location.hash = '#/notes') : show('login');
+      if (!loggedIn) return (location.hash = '#/login');
+
+      const admin = isAdmin();
+      let sec = null, run = null;
+      const route = (s, r) => { sec = s; run = r; };
+      if (page === 'notes') {
+        if (!sub) route('notes', loadNotes);
+        else if (sub === 'view' && id) route('viewer', () => openView(id));
+        else if (admin && sub === 'new') route('editor', openAdd);
+        else if (admin && sub === 'edit' && id) route('editor', () => openEdit(id));
+      } else if (admin && page === 'users') {
+        if (!sub) route('users', loadUsers);
+        else if (sub === 'new') route('userEditor', () => openUserEditor(null));
+        else if (sub === 'edit' && id) route('userEditor', () => openUserEditor(id));
+      } else if (admin && page === 'history') route('history', loadHistory);
+      else if (page === 'sync') route('sync', renderSync);
+      else if (page === 'profile') route('profile', loadProfile);
+      else if (page === 'whats-new') route('whatsNew', renderNews);
+      // Unknown pages, and admin pages for a normal user, go to Notes
+      if (!sec) return (location.hash = '#/notes');
+
+      show('app');
+      curSection = sec;
+      curRun = run;
+      curNav = SECTION_NAV[sec];
+      for (const s of SECTIONS) $(s).classList.toggle('hidden', s !== sec);
+      buildNav(); // sets the active item and the pending count
+      run();
+    }
+
+    window.addEventListener('hashchange', (e) => {
+      // In-page anchor links like #features: scroll, don't route
+      if (location.hash && !location.hash.startsWith('#/')) {
+        const target = document.querySelector(location.hash);
+        history.replaceState(null, '', new URL(e.oldURL).hash || '#/');
+        if (target) target.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      render();
+    });
+
+    // ---------- Shared table helpers ----------
+    const setText = (id, text, cls = '') => { $(id).textContent = text; $(id).className = 'msg ' + cls; };
+    const pendingBadge = () => el('span', 'badge pending', t('pending'));
+
+    // cols: [{ h: i18nKey, cls, cell(row, tr) -> Node | string }]
+    function makeTable(cols, rows, emptyKey) {
+      const wrap = el('div', 'table-wrap');
+      const table = el('table');
+      const head = el('tr');
+      for (const c of cols) head.append(el('th', c.cls, c.h ? t(c.h) : ''));
+      table.createTHead().append(head);
+      const body = table.createTBody();
+      if (!rows.length) {
+        const td = el('td', 'empty-row', t(emptyKey));
+        td.colSpan = cols.length;
+        body.insertRow().append(td);
+      }
+      for (const r of rows) {
+        const tr = body.insertRow();
+        if (r._pending === 'delete') tr.className = 'is-deleted';
+        for (const c of cols) {
+          const td = el('td', c.cls);
+          const v = c.cell(r, tr);
+          if (v instanceof Node) td.append(v);
+          else td.textContent = v == null || v === '' ? '—' : v;
+          tr.append(td);
+        }
+      }
+      wrap.append(table);
+      return wrap;
+    }
+
+    const actions = (...btns) => { const d = el('div'); d.append(...btns.filter(Boolean)); return d; };
+    function iconLink(href, icon, titleKey) {
+      const a = el('a', 'icon-btn edit');
+      a.href = href; a.title = t(titleKey); a.innerHTML = ICONS[icon];
+      return a;
+    }
+    function iconBtn(icon, titleKey, cls, onclick) {
+      const b = el('button', 'icon-btn ' + cls);
+      b.type = 'button'; b.title = t(titleKey); b.innerHTML = ICONS[icon];
+      b.addEventListener('click', onclick);
+      return b;
+    }
+
+    // First click arms the button ("Sure?") and returns false; second click within 3s returns true
+    function confirmed(btn) {
+      if (!btn.classList.contains('confirm')) {
+        btn.classList.add('confirm');
+        btn.textContent = t('confirmDel');
+        btn._timer = setTimeout(() => { btn.classList.remove('confirm'); btn.innerHTML = ICONS.trash; }, 3000);
+        return false;
+      }
+      clearTimeout(btn._timer);
+      return true;
+    }
+
+    // Loads a list from the server (and caches it); when unreachable falls back to the saved copy
+    async function cached(key, run) {
+      if (net === 'online') {
+        try {
+          const { data, error } = await run();
+          if (!error) { cacheSet(key, data); return { data }; }
+          if (!isNetErr(error)) return { error };
+        } catch {}
+      }
+      const c = cacheGet(key);
+      return c ? { data: c, stale: true } : { error: { message: t('conn_' + (net === 'online' ? 'unreachable' : net)) } };
+    }
+
+    // Name for an email, from the cached users list
+    function nameOf(email) {
+      if (!email) return '—';
+      const u = [...(cacheGet('users') || []), ...(cacheGet('names') || [])].find((x) => x.email.toLowerCase() === email.toLowerCase());
+      return u ? displayName(u) : email;
+    }
+
+    // ---------- Notes ----------
+    const editing = { id: null, base: null, qid: null }; // the note being edited (id null = adding)
+    const blobUrl = (f) => (f ? URL.createObjectURL(f) : null);
+
+    // Server rows + operations still waiting in the queue
+    async function withPending(rows) {
+      const out = rows.map((r) => ({ ...r }));
+      const adds = [];
+      for (const it of await qAll()) {
+        if (!it.kind.startsWith('note')) continue;
+        const row = out.find((r) => String(r.id) === String(it.targetId));
+        if (it.kind === 'note-add') {
+          adds.unshift({ ...it.row, id: 'q' + it.qid, created_at: it.at, created_by: it.by, image_url: blobUrl(it.imageFile), _pending: 'add' });
+        } else if (row && it.kind === 'note-edit') {
+          Object.assign(row, it.row, { _pending: 'edit' });
+          if (it.imageFile) row.image_url = blobUrl(it.imageFile);
+          else if (it.imageCleared) row.image_url = null;
+        } else if (row && it.kind === 'note-delete') {
+          row._pending = 'delete';
+        }
+      }
+      return [...adds, ...out];
+    }
+
+    async function loadNotes() {
+      $('addNoteBtn').classList.toggle('hidden', !isAdmin());
+      setText('notesMsg', t('loading'));
+      const res = await cached('notes', () => db.from('entries').select('*').order('created_at', { ascending: false }));
+      if (res.error) { $('notesTable').innerHTML = ''; return setText('notesMsg', t('error') + res.error.message, 'err'); }
+      setText('notesMsg', res.stale ? t('staleCopy') : '');
+      await cached('names', () => db.from('users').select('name, email, avatar_url')); // so every role sees names, not emails
+      const rows = await withPending(res.data);
+      const admin = isAdmin();
+
+      $('notesTable').replaceChildren(makeTable([
+        { h: 'fImage', cell: (n) => {
+          if (!n.image_url) { const d = el('div', 'thumb-empty'); d.innerHTML = ICONS.image; return d; }
+          const img = el('img', 'thumb'); img.src = n.image_url; img.alt = ''; img.loading = 'lazy';
+          return img;
+        } },
+        { h: 'fTitle', cell: (n) => { const s = el('span', 'clip', n.title); if (n._pending) s.append(pendingBadge()); return s; } },
+        { h: 'fAmount', cls: 'num', cell: (n) => n.amount },
+        { h: 'createdBy', cell: (n) => nameOf(n.created_by) },
+        { h: 'editedBy', cell: (n) => (n.updated_by ? nameOf(n.updated_by) : '—') },
+        { h: 'colDate', cell: (n) => formatDate(n.created_at) },
+        { h: 'colActions', cls: 'actions', cell: (n) => {
+          const canChange = admin && !n._pending || (admin && n._pending === 'edit');
+          return actions(
+            n._pending !== 'delete' && iconLink('#/notes/view/' + n.id, 'eye', 'viewBtn'),
+            canChange && iconLink('#/notes/edit/' + n.id, 'edit', 'editBtn'),
+            canChange && iconBtn('trash', 'delBtn', 'del', (e) => deleteNote(n, e.currentTarget)),
+          );
+        } },
+      ], rows, 'empty'));
+    }
+
+    async function deleteNote(n, btn) {
+      if (!confirmed(btn)) return;
+      btn.disabled = true;
+      const it = baseItem('note-delete', n.id, { title: n.title }, n.title,
+        { action: 'note.delete', targetType: 'note', targetId: n.id, details: { title: n.title } });
+      it.base_updated_at = n._base || n.updated_at;
+      try {
+        const r = await runOp(it);
+        if (r.mode === 'queued') toast(t('savedLocal'), 'warn');
+      } catch (err) {
+        toast(t('error') + err.message, 'err');
+      }
+      loadNotes();
+    }
+
+    // One note by id: from the server (or the saved copy), with any queued edit applied.
+    // _base is the updated_at the edit should be compared against when it syncs.
+    async function getNote(id) {
+      const items = await qAll();
+      if (String(id)[0] === 'q') {
+        const it = items.find((i) => i.qid === Number(String(id).slice(1)));
+        return it && { ...it.row, id, created_at: it.at, created_by: it.by, image_url: blobUrl(it.imageFile), _pending: 'add' };
+      }
+      let data;
+      if (net === 'online') {
+        const r = await db.from('entries').select('*').eq('id', id).maybeSingle();
+        if (!r.error) data = r.data;
+        else if (!isNetErr(r.error)) throw r.error;
+      }
+      if (data === undefined) data = (cacheGet('notes') || []).find((n) => String(n.id) === String(id));
+      if (!data) return null;
+      const pe = items.find((i) => i.kind === 'note-edit' && String(i.targetId) === String(id));
+      if (!pe) return { ...data, _base: data.updated_at };
+      return {
+        ...data, ...pe.row, _pending: 'edit', _base: pe.base_updated_at, _qid: pe.qid,
+        image_url: pe.imageFile ? blobUrl(pe.imageFile) : pe.imageCleared ? null : data.image_url,
+        _file: pe.imageFile, _cleared: pe.imageCleared,
+      };
+    }
+
+    // ---------- Add / Edit note ----------
+    const form = $('form');
+    const setMsg = (text, cls = '') => setText('msg', text, cls);
+
+    // Note image state: the saved URL, a newly picked file, or a request to remove it
+    const noteImage = { url: null, file: null, cleared: false };
+
+    function showNoteImage(src) {
+      $('noteImagePreview').classList.toggle('hidden', !src);
+      $('noteImageDrop').classList.toggle('hidden', !!src);
+      if (src) $('noteImageImg').src = src;
+    }
+
+    function resetNoteImage(url = null) {
+      Object.assign(noteImage, { url, file: null, cleared: false });
+      $('noteImage').value = '';
+      showNoteImage(url);
+    }
+
+    $('noteImage').addEventListener('change', () => {
+      const file = $('noteImage').files[0];
+      if (!file) return;
+      noteImage.file = file;
+      showNoteImage(URL.createObjectURL(file));
+    });
+
+    $('noteImageRemove').addEventListener('click', () => {
+      noteImage.file = null;
+      noteImage.cleared = !!noteImage.url;
+      $('noteImage').value = '';
+      showNoteImage(null);
+    });
+
+    function openAdd() {
+      Object.assign(editing, { id: null, base: null, qid: null });
+      $('editorTitle').textContent = t('addTitle');
+      form.reset();
+      resetNoteImage();
+      setMsg('');
+    }
+
+    async function openEdit(id) {
+      Object.assign(editing, { id: null, base: null, qid: null });
+      $('editorTitle').textContent = t('editTitle');
+      form.reset();
+      resetNoteImage();
+      if (String(id)[0] === 'q') { location.hash = '#/notes/view/' + id; return; } // not uploaded yet
+      setMsg(t('loading'));
+      try {
+        const n = await getNote(id);
+        if (!n) return setMsg(t('notFound'), 'err');
+        Object.assign(editing, { id: n.id, base: n._base, qid: n._qid || null });
+        form.title.value = n.title;
+        form.amount.value = n.amount ?? '';
+        form.notes.value = n.notes || '';
+        resetNoteImage(n.image_url);
+        // Keep an image that is already queued for upload
+        if (n._file) noteImage.file = n._file;
+        if (n._cleared) noteImage.cleared = true;
+        setMsg('');
+      } catch (err) {
+        setMsg(t('error') + err.message, 'err');
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      $('save').disabled = true;
+      setMsg(t('saving'));
+
+      const row = {
+        title: form.title.value.trim(),
+        amount: form.amount.value === '' ? null : Number(form.amount.value),
+        notes: form.notes.value.trim() || null,
+      };
+      const isEdit = !!editing.id;
+      const it = baseItem(isEdit ? 'note-edit' : 'note-add', editing.id, row, row.title,
+        { action: isEdit ? 'note.edit' : 'note.add', targetType: 'note', targetId: editing.id, details: { title: row.title } });
+      Object.assign(it, { imageFile: noteImage.file, imageCleared: noteImage.cleared, base_updated_at: editing.base });
+      if (editing.qid) it.qid = editing.qid;
+
+      try {
+        if (noteImage.file && net === 'online') setMsg(t('uploading'));
+        const r = await runOp(it);
+        if (r.mode === 'queued') {
+          editing.qid = isEdit ? it.qid : null;
+          setMsg(t('savedLocal'), 'ok');
+          if (!isEdit) { form.reset(); resetNoteImage(); }
+        } else {
+          setMsg(t(isEdit ? 'updated' : 'saved'), 'ok');
+          if (isEdit) {
+            Object.assign(editing, { base: r.data.updated_at, qid: null });
+            resetNoteImage(r.data.image_url);
+          } else {
+            form.reset();
+            resetNoteImage();
+          }
+        }
+      } catch (err) {
+        setMsg(t('error') + err.message, 'err');
+      }
+      $('save').disabled = false;
+    });
+
+    // ---------- View note (read-only) ----------
+    async function openView(id) {
+      $('viewBody').classList.add('hidden');
+      setText('viewMsg', t('loading'));
+      let n;
+      try { n = await getNote(id); } catch (err) { return setText('viewMsg', t('error') + err.message, 'err'); }
+      if (!n) return setText('viewMsg', t('notFound'), 'err');
+      $('vTitle').textContent = n.title;
+      $('vDate').textContent = formatDate(n.created_at);
+      $('vAmount').textContent = n.amount ?? '—';
+      $('vNotes').textContent = n.notes || '—';
+      $('vBy').textContent = nameOf(n.created_by);
+      $('vEditedBy').textContent = n.updated_by ? nameOf(n.updated_by) + ' · ' + formatDate(n.updated_at) : '—';
+      $('vImageLink').classList.toggle('hidden', !n.image_url);
+      if (n.image_url) {
+        $('vImage').src = n.image_url;
+        $('vImageLink').href = n.image_url;
+      }
+      $('vEdit').href = '#/notes/edit/' + n.id;
+      $('vEdit').classList.toggle('hidden', !isAdmin() || n._pending === 'add');
+      setText('viewMsg', '');
+      $('viewBody').classList.remove('hidden');
+    }
+
+    // ---------- User form (shared by the Users editor page and the Profile page) ----------
+    let formCount = 0;
+
+    function setPreview(f, src) {
+      if (!src) {
+        f.preview.innerHTML = ICONS.camera;
+        f.preview.classList.remove('has-photo');
+        return;
+      }
+      const img = el('img');
+      img.src = src;
+      f.preview.replaceChildren(img);
+      f.preview.classList.add('has-photo');
+    }
+
+    // Clones the form template into `host`; returns refs to its fields ("editing" = the user being edited, or null)
+    function mountUserForm(host, { role, cancel, onDone }) {
+      const node = $('userFormTpl').content.cloneNode(true).firstElementChild;
+      const n = ++formCount;
+      const f = { form: node, editing: null, onDone };
+      node.querySelectorAll('[data-f]').forEach((x) => {
+        f[x.dataset.f] = x;
+        if (x.matches('input, select')) x.id = `uf${n}-${x.dataset.f}`;
+      });
+      node.querySelectorAll('label[data-for]').forEach((l) => { l.htmlFor = `uf${n}-${l.dataset.for}`; });
+      f.roleBox.classList.toggle('hidden', !role);
+      f.cancel.classList.toggle('hidden', !cancel);
+      addEye(f.password);
+      f.photo.addEventListener('change', () => {
+        const file = f.photo.files[0];
+        setPreview(f, file ? URL.createObjectURL(file) : f.editing && f.editing.avatar_url);
+      });
+      node.addEventListener('submit', (e) => submitUserForm(e, f));
+      host.append(node);
+      return f;
+    }
+
+    const setFormMsg = (f, text, cls = '') => { f.msg.textContent = text; f.msg.className = 'msg ' + cls; };
+
+    // Button text and password rules for add vs. edit mode
+    function syncUserFormTexts(f) {
+      const edit = !!f.editing;
+      f.btn.textContent = t(edit ? 'save' : 'addUser');
+      f.password.required = !edit;
+      f.pwLabel.classList.toggle('req', !edit);
+      f.pwHint.classList.toggle('hidden', !edit);
+    }
+
+    // u = user to edit, or null to add
+    function fillUserForm(f, u) {
+      f.editing = u;
+      f.form.reset();
+      f.name.value = u ? rawName(u) : '';
+      f.email.value = u ? u.email : '';
+      f.role.value = u && u.role === 'admin' || (u && isOwner(u.email)) ? 'admin' : 'user';
+      // The owner's email is fixed (it protects the account from being deleted); owner and self keep their role
+      f.email.readOnly = !!u && isOwner(u.email);
+      f.role.disabled = !!u && (isOwner(u.email) || isMe(u));
+      setPreview(f, u && u.avatar_url);
+      setFormMsg(f, '');
+      syncUserFormTexts(f);
+    }
+
+    async function submitUserForm(e, f) {
+      e.preventDefault();
+      f.btn.disabled = true;
+      const u = f.editing;
+      const profile = f === pf;
+      const row = { name: f.name.value.trim(), email: f.email.value.trim().toLowerCase() };
+      if (f.password.value) row.password = f.password.value;
+      if (!profile) row.role = f.role.value;
+
+      const details = { name: row.name, email: row.email };
+      if (row.role) details.role = row.role;
+      const it = baseItem(u ? 'user-edit' : 'user-add', u && u.id, row, row.name,
+        { action: profile ? 'profile.edit' : u ? 'user.edit' : 'user.add', targetType: 'user', targetId: u && u.id, details });
+      it.targetEmail = u && u.email;
+      it.imageFile = f.photo.files[0] || null;
+
+      try {
+        setFormMsg(f, t(it.imageFile && net === 'online' ? 'uploading' : 'saving'));
+        const r = await runOp(it);
+        // Keep the sidebar in sync when editing yourself
+        if (u && isMe(u)) {
+          const me = currentUser();
+          saveSession({ ...me, name: row.name, email: row.email, avatar_url: r.data ? r.data.avatar_url : me.avatar_url });
+        }
+        if (r.mode === 'queued') toast(t('savedLocal'), 'warn');
+        if (profile) {
+          loadProfile();
+          setFormMsg(f, t(r.mode === 'queued' ? 'savedLocal' : 'profileSaved'), 'ok');
+        } else {
+          if (r.mode === 'online') toast(t(u ? 'userUpdated' : 'userAdded'), 'ok');
+          location.hash = '#/users';
+        }
+      } catch (err) {
+        setFormMsg(f, err.code === '23505' ? t('userExists') : t('error') + err.message, 'err');
+      } finally {
+        f.btn.disabled = false;
+      }
+    }
+
+    const uf = mountUserForm($('userFormHost'), { role: true, cancel: true });
+    const pf = mountUserForm($('profileFormHost'), { role: false, cancel: false });
+
+    // ---------- Users ----------
+    async function withPendingUsers(rows) {
+      const out = rows.map((r) => ({ ...r }));
+      const adds = [];
+      for (const it of await qAll()) {
+        if (!it.kind.startsWith('user')) continue;
+        const { password, ...row } = it.row || {};
+        const u = out.find((r) => String(r.id) === String(it.targetId));
+        if (it.kind === 'user-add') adds.push({ ...row, id: 'q' + it.qid, _pending: 'add', avatar_url: blobUrl(it.imageFile) });
+        else if (u && it.kind === 'user-edit') {
+          Object.assign(u, row, { _pending: 'edit' });
+          if (it.imageFile) u.avatar_url = blobUrl(it.imageFile);
+        } else if (u && it.kind === 'user-delete') u._pending = 'delete';
+      }
+      return [...out, ...adds];
+    }
+
+    async function loadUsers() {
+      setText('usersMsg', t('loading'));
+      const res = await cached('users', () => db.from('users').select('id, name, email, avatar_url, role').order('created_at'));
+      if (res.error) { $('usersTable').innerHTML = ''; return setText('usersMsg', t('error') + res.error.message, 'err'); }
+      setText('usersMsg', res.stale ? t('staleCopy') : '');
+      const rows = await withPendingUsers(res.data);
+
+      $('usersTable').replaceChildren(makeTable([
+        { h: null, cell: (u) => { const a = el('span', 'avatar'); fillAvatar(a, u); return a; } },
+        { h: 'uName', cell: (u) => {
+          const s = el('span', null, displayName(u));
+          // The owner and the signed-in user can't be removed
+          const tag = isOwner(u.email) ? 'owner' : isMe(u) ? 'you' : null;
+          if (tag) s.append(' ', el('span', 'badge', t(tag)));
+          if (u._pending) s.append(pendingBadge());
+          return s;
+        } },
+        { h: 'email', cell: (u) => el('span', 'clip', u.email) },
+        { h: 'role', cell: (u) => {
+          const admin = u.role === 'admin' || isOwner(u.email);
+          return el('span', 'badge' + (admin ? ' admin' : ''), t(admin ? 'roleAdmin' : 'roleUser'));
+        } },
+        { h: 'colActions', cls: 'actions', cell: (u) => {
+          if (u._pending === 'delete' || u._pending === 'add') return '';
+          const protectedUser = isOwner(u.email) || isMe(u);
+          const del = iconBtn('trash', 'delBtn', 'del', (e) => deleteUser(u, e.currentTarget));
+          del.disabled = protectedUser;
+          return actions(iconLink('#/users/edit/' + u.id, 'edit', 'editBtn'), del);
+        } },
+      ], rows, 'noUsers'));
+    }
+
+    async function deleteUser(u, btn) {
+      if (!confirmed(btn)) return;
+      btn.disabled = true;
+      const it = baseItem('user-delete', u.id, { name: u.name, email: u.email }, u.name || u.email,
+        { action: 'user.delete', targetType: 'user', targetId: u.id, details: { name: u.name, email: u.email } });
+      try {
+        const r = await runOp(it);
+        if (r.mode === 'queued') toast(t('savedLocal'), 'warn');
+      } catch (err) {
+        toast(t('error') + err.message, 'err');
+      }
+      loadUsers();
+    }
+
+    // One user by id (without password): server or saved copy, with queued edits applied
+    async function getUser(id) {
+      let data;
+      if (net === 'online') {
+        const r = await db.from('users').select('id, name, email, avatar_url, role').eq('id', id).maybeSingle();
+        if (!r.error) data = r.data;
+        else if (!isNetErr(r.error)) throw r.error;
+      }
+      if (data === undefined) data = (cacheGet('users') || []).find((u) => String(u.id) === String(id));
+      if (!data) return null;
+      const rows = await withPendingUsers([data]);
+      return rows[0];
+    }
+
+    async function openUserEditor(id) {
+      $('userEditorTitle').textContent = t(id ? 'editUser' : 'addUser');
+      fillUserForm(uf, null);
+      if (!id) return;
+      setFormMsg(uf, t('loading'));
+      try {
+        const u = await getUser(id);
+        if (!u) return setFormMsg(uf, t('notFound'), 'err');
+        fillUserForm(uf, u);
+        $('userEditorTitle').textContent = t('editUser');
+      } catch (err) {
+        setFormMsg(uf, t('error') + err.message, 'err');
+      }
+    }
+
+    // ---------- Profile ----------
+    const meUser = () => { const u = currentUser(); return { id: u.id, name: rawName(u), email: u.email, avatar_url: u.avatar_url, role: isAdmin() ? 'admin' : 'user' }; };
+
+    function renderProfileHead() {
+      const u = currentUser();
+      fillAvatar($('pAvatar'), u);
+      $('pName').textContent = displayName(u);
+      $('pEmail').textContent = u.email;
+      $('pRole').textContent = t(isAdmin() ? 'roleAdmin' : 'roleUser');
+      $('pRole').className = 'badge' + (isAdmin() ? ' admin' : '');
+    }
+
+    function loadProfile() {
+      renderProfileHead();
+      fillUserForm(pf, meUser());
+    }
+
+    // ---------- History (audit log) ----------
+    let auditRows = [];
+    const actLabel = (a) => t('act_' + String(a).replace('.', '_')) || a;
+    const targetText = (r) => [r.target_type, r.target_id].filter(Boolean).join(' #');
+
+    // "title: Foo · count: 3"
+    function detailsText(d) {
+      if (!d) return '';
+      return Object.entries(d).map(([k, v]) => `${k}: ${v !== null && typeof v === 'object' ? JSON.stringify(v) : v}`).join(' · ');
+    }
+
+    // Rebuilds a filter <select>, keeping the chosen value when it still exists
+    function fillSelect(sel, allKey, values, label) {
+      const keep = sel.value;
+      sel.replaceChildren(new Option(t(allKey), ''), ...values.map((v) => new Option(label(v), v)));
+      sel.value = values.includes(keep) ? keep : '';
+    }
+
+    async function loadHistory() {
+      setText('historyMsg', t('loading'));
+      const res = await cached('audit', () => db.from('audit_log').select('*').order('created_at', { ascending: false }).limit(500));
+      if (res.error) { $('historyTable').innerHTML = ''; return setText('historyMsg', t('error') + res.error.message, 'err'); }
+      setText('historyMsg', res.stale ? t('staleCopy') : '');
+      auditRows = res.data;
+      const uniq = (k) => [...new Set(auditRows.map((r) => r[k]).filter(Boolean))];
+      fillSelect($('fUser'), 'allUsers', uniq('user_email'), (e) => nameOf(e) + ' — ' + e);
+      fillSelect($('fAction'), 'allActions', uniq('action'), actLabel);
+      renderAudit();
+    }
+
+    function renderAudit() {
+      const u = $('fUser').value, a = $('fAction').value;
+      const rows = auditRows.filter((r) => (!u || r.user_email === u) && (!a || r.action === a));
+      const COLS = 6;
+      $('historyTable').replaceChildren(makeTable([
+        { h: 'colWhen', cell: (r) => formatDateTime(r.created_at) },
+        { h: 'colUser', cell: (r) => el('span', 'clip', r.user_name || r.user_email) },
+        { h: 'colAction', cell: (r) => actLabel(r.action) },
+        { h: 'colTarget', cell: (r) => targetText(r) },
+        { h: 'colDetails', cell: (r) => el('span', 'clip', detailsText(r.details)) },
+        { h: 'colActions', cls: 'actions', cell: (r, tr) => actions(iconBtn('eye', 'viewBtn', 'edit', () => {
+          // View toggles a row with the full details under this one
+          if (tr._detail) { tr._detail.remove(); tr._detail = null; return; }
+          const d = el('tr', 'detail-row');
+          const td = el('td'); td.colSpan = COLS;
+          td.append(el('div', 'detail-box', [r.user_email, formatDateTime(r.created_at), actLabel(r.action), targetText(r), JSON.stringify(r.details, null, 2)].filter(Boolean).join('\n')));
+          d.append(td);
+          tr.after(d);
+          tr._detail = d;
+        })) },
+      ], rows, 'noHistory'));
+    }
+    $('fUser').addEventListener('change', renderAudit);
+    $('fAction').addEventListener('change', renderAudit);
+
+    // ---------- Sync page ----------
+    const FIELD_LABEL = { title: 'fTitle', amount: 'fAmount', notes: 'fNotes', image_url: 'fImage', avatar_url: 'fImage', name: 'uName', email: 'email', role: 'role' };
+
+    // Fields an operation changes (password is never shown)
+    function changedFields(it) {
+      const ks = Object.keys(it.row || {}).filter((k) => !['password', 'image_url', 'avatar_url'].includes(k));
+      if (it.imageFile || it.imageCleared) ks.push(it.kind.startsWith('user') ? 'avatar_url' : 'image_url');
+      return ks;
+    }
+    const mineVal = (it, k) => (k === 'image_url' || k === 'avatar_url' ? blobUrl(it.imageFile) : it.row[k]);
+
+    // A value as a node: images as thumbnails, everything else as text
+    function valNode(k, v) {
+      if ((k === 'image_url' || k === 'avatar_url') && v) { const i = el('img'); i.src = v; i.alt = ''; return i; }
+      return el('span', null, v == null || v === '' ? '—' : String(v));
+    }
+    const sameVal = (a, b) => (a ?? '') === (b ?? '');
+    const opLabel = (it) => actLabel(it.kind.replace('-', '.'));
+
+    // Field-by-field local vs server table
+    function diffTable(it, server) {
+      const rows = changedFields(it).map((k) => ({ k, mine: mineVal(it, k), srv: server && server[k] }));
+      return makeTable([
+        { h: 'field', cell: (r) => t(FIELD_LABEL[r.k] || r.k) },
+        { h: 'local', cell: (r) => valNode(r.k, r.mine) },
+        { h: 'server', cls: 'diff-cell', cell: (r, tr) => {
+          if (!sameVal(r.mine, r.srv) && r.k !== 'image_url' && r.k !== 'avatar_url') tr.classList.add('changed');
+          return valNode(r.k, r.srv);
+        } },
+      ], rows, 'noPending');
+    }
+
+    async function renderPending(withDiff) {
+      const items = visibleOps(await qAll());
+      if (!items.length) return $('pendingBox').replaceChildren(el('div', 'msg', t('noPending')));
+      const table = makeTable([
+        { h: 'opType', cell: (it) => opLabel(it) },
+        { h: 'colTarget', cell: (it) => el('span', 'clip', it.label || it.targetId) },
+        { h: 'colWhen', cell: (it) => formatDateTime(it.at) },
+      ], items, 'noPending');
+      $('pendingBox').replaceChildren(table);
+      if (!withDiff) return;
+
+      // Compare each queued note edit with what the server has now
+      const trs = table.querySelectorAll('tbody tr');
+      for (const [i, it] of items.entries()) {
+        if (it.kind !== 'note-edit' || net !== 'online') continue;
+        const { data: server } = await db.from('entries').select('*').eq('id', it.targetId).maybeSingle();
+        const d = el('tr', 'detail-row');
+        const td = el('td'); td.colSpan = 3;
+        if (!server) td.append(el('div', 'msg err', t('serverGone')));
+        else {
+          if (server.updated_at !== it.base_updated_at) td.append(el('div', 'msg err', t('serverChangedWarn')));
+          td.append(diffTable(it, server));
+        }
+        d.append(td);
+        trs[i].after(d);
+      }
+    }
+
+    async function renderConflicts() {
+      const items = visibleOps(await qAll('conflicts'));
+      const box = $('conflictBox');
+      if (!items.length) return box.replaceChildren(el('div', 'msg', t('noConflicts')));
+      box.replaceChildren(...items.map((it) => {
+        const card = el('div', 'conflict');
+        card.append(el('h3', null, `${opLabel(it)} — ${it.label || it.targetId}`));
+        const reason = it.reason === 'changed' ? t('rChanged') : it.reason === 'deleted' ? t('rDeleted') : t('rError') + (it.error || '');
+        card.append(el('div', 'meta', reason));
+        const s = it.server;
+        if (s) {
+          const who = s.updated_by ? nameOf(s.updated_by) : t('unknown');
+          card.append(el('div', 'meta', t('changedByAt').replace('{who}', who).replace('{when}', formatDateTime(s.updated_at))));
+        }
+
+        // Mine vs server, side by side
+        const isDel = it.kind.endsWith('delete');
+        const keys = isDel ? ['title', 'amount', 'notes'] : changedFields(it);
+        const side = (head, get) => {
+          const box2 = el('div', 'side');
+          box2.append(el('h4', null, head));
+          const dl = el('dl');
+          for (const k of keys) {
+            const mv = isDel ? null : mineVal(it, k), sv = s && s[k];
+            const v = get(k);
+            dl.append(el('dt', null, t(FIELD_LABEL[k] || k)));
+            const dd = el('dd', !isDel && !sameVal(mv, sv) ? 'diff' : '');
+            dd.append(valNode(k, v));
+            dl.append(dd);
+          }
+          box2.append(dl);
+          return box2;
+        };
+        const sides = el('div', 'sides');
+        const mine = side(t('mine'), (k) => mineVal(it, k));
+        if (isDel) { mine.querySelector('dl').replaceChildren(el('dd', 'diff', t('deleteOp'))); }
+        sides.append(mine, side(t('serverVer'), (k) => s && s[k]));
+        card.append(sides);
+
+        const act = el('div', 'form-actions');
+        const keepMine = el('button', 'btn', t('keepMine')); keepMine.type = 'button';
+        const keepServer = el('button', 'btn ghost', t('keepServer')); keepServer.type = 'button';
+        keepMine.addEventListener('click', () => resolveConflict(it, 'mine', act));
+        keepServer.addEventListener('click', () => resolveConflict(it, 'server', act));
+        act.append(keepMine, keepServer);
+        card.append(act);
+        return card;
+      }));
+    }
+
+    async function resolveConflict(it, choice, act) {
+      if (net !== 'online') return toast(t('needOnline'), 'warn');
+      act.querySelectorAll('button').forEach((b) => { b.disabled = true; });
+      try {
+        // "Keep mine" overwrites the server; "Keep server" just drops my change
+        if (choice === 'mine') auditItem(it, await applyItem(it, true));
+        await qDel(it.qid, 'conflicts');
+        audit('sync.resolve', 'sync', it.targetId, { choice, operation: it.kind, label: it.label });
+        toast(t('resolved'), 'ok');
+      } catch (err) {
+        toast(t('error') + err.message, 'err');
+      }
+      refreshPending();
+      renderSync();
+    }
+
+    async function renderSync() {
+      setText('syncMsg', '');
+      await renderPending(false);
+      await renderConflicts();
+    }
+
+    $('syncNowBtn').addEventListener('click', async () => {
+      if (net !== 'online') return toast(t('needOnline'), 'warn');
+      setText('syncMsg', t('syncing'));
+      const r = await syncNow();
+      setText('syncMsg', '');
+      if (r && !r.done && !r.conf) toast(t('nothingToSync'));
+      renderSync();
+    });
+    $('checkBtn').addEventListener('click', async () => {
+      setText('syncMsg', t('loading'));
+      await renderPending(true);
+      await renderConflicts();
+      setText('syncMsg', '');
+    });
+
+    // ---------- What's new ----------
+    function renderNews() {
+      $('newsList').replaceChildren(...t('news').map((n) => {
+        const li = el('li');
+        li.append(el('div', 'date', formatDate(n.d)), el('h3', null, n.h), el('p', null, n.p));
+        return li;
+      }));
+    }
+
+    // ---------- Start ----------
     applyLang();
     applyTheme();
     render();
+    checkStatus();
   </script>
 </body>
 </html>

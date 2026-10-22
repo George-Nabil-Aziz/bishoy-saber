@@ -115,3 +115,44 @@ create policy "public can delete note images" on storage.objects for delete to a
 -- ---------- The number on a note is optional ----------
 
 alter table public.entries alter column amount drop not null;
+
+
+-- ---------- Roles ----------
+
+alter table public.users add column if not exists role text not null default 'user';
+alter table public.users drop constraint if exists users_role_check;
+alter table public.users add constraint users_role_check check (role in ('admin', 'user'));
+
+update public.users set role = 'admin' where lower(email) = 'bishoy.saber@gmail.com';
+
+-- The website can also edit the role
+grant update (name, email, password, avatar_url, role) on public.users to anon;
+
+
+-- ---------- Who created / changed a note ----------
+
+alter table public.entries add column if not exists created_by text;
+alter table public.entries add column if not exists updated_at timestamptz not null default now();
+alter table public.entries add column if not exists updated_by text;
+
+
+-- ---------- Audit log (History page) ----------
+
+create table if not exists public.audit_log (
+  id           bigint generated always as identity primary key,
+  created_at   timestamptz not null default now(),
+  user_email   text,
+  user_name    text,
+  action       text,
+  target_type  text,
+  target_id    text,
+  details      jsonb
+);
+
+alter table public.audit_log enable row level security;
+
+drop policy if exists "public can add audit" on public.audit_log;
+create policy "public can add audit" on public.audit_log for insert to anon with check (true);
+
+drop policy if exists "public can read audit" on public.audit_log;
+create policy "public can read audit" on public.audit_log for select to anon using (true);
