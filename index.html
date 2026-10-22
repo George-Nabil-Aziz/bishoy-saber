@@ -110,14 +110,8 @@
       </form>
     </div>
 
-    <div class="persona-title" data-i18n="personaHint"></div>
-    <button type="button" class="persona" id="persona">
-      <span class="avatar" data-i18n="initial"></span>
-      <span>
-        <strong data-i18n="userName"></strong>
-        <small>bishoy.saber@gmail.com</small>
-      </span>
-    </button>
+    <div class="persona-title"><span class="badge demo" data-i18n="demoBadge"></span> <span data-i18n="personaHint"></span></div>
+    <div class="personas" id="personas"></div>
   </div>
 
   <template id="userFormTpl">
@@ -182,7 +176,7 @@
       <div id="notes" class="card wide">
         <div class="page-head">
           <h1 data-i18n="notes"></h1>
-          <a class="btn hidden" id="addNoteBtn" href="#/notes/new"><span data-icon="plus"></span><span data-i18n="addNote"></span></a>
+          <a class="btn" id="addNoteBtn" href="#/notes/new"><span data-icon="plus"></span><span data-i18n="addNote"></span></a>
         </div>
         <div id="notesTable"></div>
         <div id="notesMsg" class="msg"></div>
@@ -357,7 +351,7 @@
     const I18N = {
       ar: {
         appName: 'ملاحظاتي', welcome: 'أهلاً بيك، سجّل دخولك', email: 'الإيميل', password: 'الباسورد',
-        login: 'دخول', personaHint: 'اضغط على الاسم لملء البيانات', userName: 'بيشوي صابر', initial: 'ب',
+        login: 'دخول', personaHint: 'حسابات تجريبية — اضغط على أي اسم لملء البيانات', demoBadge: 'مرحلة تجريبية', userName: 'بيشوي صابر', initial: 'ب',
         badLogin: 'الإيميل أو الباسورد غلط', addNote: 'إضافة ملاحظة', history: 'السجل', signout: 'تسجيل الخروج',
         addTitle: 'إضافة ملاحظة', editTitle: 'تعديل ملاحظة', fTitle: 'العنوان', fAmount: 'الرقم', fNotes: 'ملاحظات',
         save: 'حفظ', saving: 'جاري الحفظ...', saved: 'تم الحفظ ✓', updated: 'تم التعديل ✓', loading: 'جاري التحميل...',
@@ -432,7 +426,7 @@
       },
       en: {
         appName: 'My Notes', welcome: 'Welcome back, please sign in', email: 'Email', password: 'Password',
-        login: 'Login', personaHint: 'Click the name to fill in the details', userName: 'Bishoy Saber', initial: 'B',
+        login: 'Login', personaHint: 'Demo accounts — click a name to fill in the details', demoBadge: 'Trial phase', userName: 'Bishoy Saber', initial: 'B',
         badLogin: 'Wrong email or password', addNote: 'Add note', history: 'History', signout: 'Sign out',
         addTitle: 'Add note', editTitle: 'Edit note', fTitle: 'Title', fAmount: 'Number', fNotes: 'Notes',
         save: 'Save', saving: 'Saving...', saved: 'Saved ✓', updated: 'Updated ✓', loading: 'Loading...',
@@ -521,6 +515,7 @@
       document.querySelectorAll('[data-action="lang"]').forEach((b) => { b.textContent = t('otherLang'); });
       document.querySelectorAll('[data-enter]').forEach((a) => { a.textContent = t(isLoggedIn() ? 'openApp' : 'startNow'); });
       document.querySelectorAll('.pw-eye').forEach(syncEye);
+      if (!$('login').classList.contains('hidden')) loadPersonas();
       $('editorTitle').textContent = t(editing.id ? 'editTitle' : 'addTitle');
       for (const f of [uf, pf]) syncUserFormTexts(f);
       $('userEditorTitle').textContent = t(uf.editing ? 'editUser' : 'addUser');
@@ -886,10 +881,23 @@
     }
 
     // ---------- Login ----------
-    $('persona').addEventListener('click', () => {
-      $('email').value = USER.email;
-      $('password').value = USER.password;
-    });
+    // Demo accounts: every user, click to fill the form (falls back to the owner when offline)
+    async function loadPersonas() {
+      const { data } = await db.from('users').select('name, email, password, avatar_url, role').order('created_at');
+      const users = data && data.length ? data : [{ ...USER, role: 'admin' }];
+      $('personas').replaceChildren(...users.map((u) => {
+        const b = el('button', 'persona');
+        b.type = 'button';
+        const avatar = el('span', 'avatar');
+        fillAvatar(avatar, u);
+        const info = el('span', 'persona-info');
+        info.append(el('strong', null, displayName(u)), el('small', null, u.email));
+        const role = el('span', 'badge' + (u.role === 'admin' ? ' admin' : ''), t(u.role === 'admin' ? 'roleAdmin' : 'roleUser'));
+        b.append(avatar, info, role);
+        b.addEventListener('click', () => { $('email').value = u.email; $('password').value = u.password; });
+        return b;
+      }));
+    }
 
     $('loginForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -928,7 +936,9 @@
     });
 
     // ---------- Navigation (differs per role) ----------
-    const NAVS = { admin: ['notes', 'users', 'history', 'sync', 'whatsNew', 'profile'], user: ['notes', 'profile', 'sync', 'whatsNew'] };
+    const NAVS = { admin: ['notes', 'users', 'history', 'sync', 'whatsNew', 'profile'], user: ['notes', 'profile', 'sync'] };
+    // Admins change any note; a user only the notes they created
+    const canEditNote = (n) => isAdmin() || (!!n.created_by && n.created_by.toLowerCase() === currentUser().email.toLowerCase());
     const NAV_ICON = { notes: 'file', users: 'users', history: 'clock', sync: 'sync', whatsNew: 'star', profile: 'user' };
     let curNav = null;
 
@@ -971,7 +981,7 @@
       });
 
       if (!page) return show('landing');
-      if (page === 'login') return loggedIn ? (location.hash = '#/notes') : show('login');
+      if (page === 'login') return loggedIn ? (location.hash = '#/notes') : (show('login'), loadPersonas());
       if (!loggedIn) return (location.hash = '#/login');
 
       const admin = isAdmin();
@@ -980,8 +990,8 @@
       if (page === 'notes') {
         if (!sub) route('notes', loadNotes);
         else if (sub === 'view' && id) route('viewer', () => openView(id));
-        else if (admin && sub === 'new') route('editor', openAdd);
-        else if (admin && sub === 'edit' && id) route('editor', () => openEdit(id));
+        else if (sub === 'new') route('editor', openAdd);
+        else if (sub === 'edit' && id) route('editor', () => openEdit(id));
       } else if (admin && page === 'users') {
         if (!sub) route('users', loadUsers);
         else if (sub === 'new') route('userEditor', () => openUserEditor(null));
@@ -989,7 +999,7 @@
       } else if (admin && page === 'history') route('history', loadHistory);
       else if (page === 'sync') route('sync', renderSync);
       else if (page === 'profile') route('profile', loadProfile);
-      else if (page === 'whats-new') route('whatsNew', renderNews);
+      else if (admin && page === 'whats-new') route('whatsNew', renderNews);
       // Unknown pages, and admin pages for a normal user, go to Notes
       if (!sec) return (location.hash = '#/notes');
 
@@ -1115,14 +1125,13 @@
     }
 
     async function loadNotes() {
-      $('addNoteBtn').classList.toggle('hidden', !isAdmin());
+      
       setText('notesMsg', t('loading'));
       const res = await cached('notes', () => db.from('entries').select('*').order('created_at', { ascending: false }));
       if (res.error) { $('notesTable').innerHTML = ''; return setText('notesMsg', t('error') + res.error.message, 'err'); }
       setText('notesMsg', res.stale ? t('staleCopy') : '');
       await cached('names', () => db.from('users').select('name, email, avatar_url')); // so every role sees names, not emails
       const rows = await withPending(res.data);
-      const admin = isAdmin();
 
       $('notesTable').replaceChildren(makeTable([
         { h: 'fImage', cell: (n) => {
@@ -1136,7 +1145,7 @@
         { h: 'editedBy', cell: (n) => (n.updated_by ? nameOf(n.updated_by) : '—') },
         { h: 'colDate', cell: (n) => formatDate(n.created_at) },
         { h: 'colActions', cls: 'actions', cell: (n) => {
-          const canChange = admin && !n._pending || (admin && n._pending === 'edit');
+          const canChange = canEditNote(n) && (!n._pending || n._pending === 'edit');
           return actions(
             n._pending !== 'delete' && iconLink('#/notes/view/' + n.id, 'eye', 'viewBtn'),
             canChange && iconLink('#/notes/edit/' + n.id, 'edit', 'editBtn'),
@@ -1237,6 +1246,7 @@
       try {
         const n = await getNote(id);
         if (!n) return setMsg(t('notFound'), 'err');
+        if (!canEditNote(n)) { location.hash = '#/notes/view/' + id; return; }
         Object.assign(editing, { id: n.id, base: n._base, qid: n._qid || null });
         form.title.value = n.title;
         form.amount.value = n.amount ?? '';
@@ -1309,7 +1319,7 @@
         $('vImageLink').href = n.image_url;
       }
       $('vEdit').href = '#/notes/edit/' + n.id;
-      $('vEdit').classList.toggle('hidden', !isAdmin() || n._pending === 'add');
+      $('vEdit').classList.toggle('hidden', !canEditNote(n) || n._pending === 'add');
       setText('viewMsg', '');
       $('viewBody').classList.remove('hidden');
     }

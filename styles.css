@@ -428,3 +428,10 @@ tr.detail-row td { background: var(--input-bg); }
   #toasts { inset-inline-start: 16px; }
 }
 tr.changed td { color: var(--err); font-weight: 700; }
+
+/* Demo accounts on the login page */
+.personas { display: flex; flex-direction: column; gap: 8px; }
+.persona-info { flex: 1; min-width: 0; }
+.persona-info small { overflow: hidden; text-overflow: ellipsis; }
+.persona-title { display: flex; align-items: center; justify-content: center; gap: 8px; flex-wrap: wrap; }
+.badge.demo { background: var(--warn-soft); color: var(--warn); }
