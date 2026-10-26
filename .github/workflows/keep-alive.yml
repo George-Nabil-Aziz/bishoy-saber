@@ -1,0 +1,17 @@
+# Pings Supabase every 3 days so the free project is not paused for inactivity.
+name: Keep Supabase alive
+
+on:
+  schedule:
+    - cron: '0 6 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase
+        run: |
+          curl -sf "https://kvnvyxpnaogekbmelnug.supabase.co/rest/v1/entries?select=id&limit=1" \
+            -H "apikey: sb_publishable_16L7jf6nP8n3a8twcv_bMQ_04YZALky" \
+            -H "Authorization: Bearer sb_publishable_16L7jf6nP8n3a8twcv_bMQ_04YZALky"
