@@ -278,10 +278,17 @@
         <h2 class="sub-title" data-i18n="conflicts"></h2>
         <div id="conflictBox"></div>
         <div id="syncMsg" class="msg"></div>
-        <h2 class="sub-title" data-i18n="installSection"></h2>
+      </div>
+
+      <!-- Install app -->
+      <div id="install" class="card hidden">
+        <div class="page-head"><h1 data-i18n="install"></h1></div>
         <div class="install-section">
           <img src="icons/icon-192.png" alt="" />
-          <p id="installState"></p>
+          <div class="install-text">
+            <strong data-i18n="installTitle"></strong>
+            <p id="installState"></p>
+          </div>
           <button type="button" class="btn" id="installBtn2"><span data-icon="download"></span><span data-i18n="installBtn"></span></button>
         </div>
       </div>
@@ -391,7 +398,7 @@
         conn_online: 'متصل', conn_offline: 'مفيش إنترنت', conn_unreachable: 'السيرفر مش متاح',
         installTitle: 'نزّل التطبيق على جهازك', installHint: 'يفتح بسرعة ويشتغل من غير إنترنت', installBtn: 'تثبيت',
         installIos: 'اضغط زرار المشاركة وبعدين "إضافة إلى الشاشة الرئيسية"',
-        installSection: 'تطبيق الموبايل', installDone: 'التطبيق متثبّت على الجهاز ده ✓',
+        install: 'تطبيق الموبايل', installDone: 'التطبيق متثبّت على الجهاز ده ✓',
         installMenu: 'من قائمة المتصفح ⋮ اختار "تثبيت التطبيق" أو "إضافة إلى الشاشة الرئيسية"',
         needOnline: 'لازم يبقى فيه اتصال الأول', notFound: 'مش موجود', profileSaved: 'تم حفظ بياناتك ✓',
         colWhen: 'الوقت', colUser: 'المستخدم', colAction: 'العملية', colTarget: 'الهدف', colDetails: 'التفاصيل',
@@ -473,7 +480,7 @@
         conn_online: 'Online', conn_offline: 'Offline', conn_unreachable: 'Server unreachable',
         installTitle: 'Install the app on your device', installHint: 'Opens fast and works offline', installBtn: 'Install',
         installIos: 'Tap Share then "Add to Home Screen"',
-        installSection: 'Mobile app', installDone: 'The app is installed on this device ✓',
+        install: 'Mobile app', installDone: 'The app is installed on this device ✓',
         installMenu: 'From the browser menu ⋮ choose "Install app" or "Add to Home screen"',
         needOnline: 'You need a connection first', notFound: 'Not found', profileSaved: 'Profile saved ✓',
         colWhen: 'When', colUser: 'User', colAction: 'Action', colTarget: 'Target', colDetails: 'Details',
@@ -969,10 +976,10 @@
     });
 
     // ---------- Navigation (differs per role) ----------
-    const NAVS = { admin: ['notes', 'users', 'history', 'sync', 'whatsNew', 'profile'], user: ['notes', 'profile', 'sync'] };
+    const NAVS = { admin: ['notes', 'users', 'history', 'sync', 'whatsNew', 'profile', 'install'], user: ['notes', 'profile', 'sync', 'install'] };
     // Admins change any note; a user only the notes they created
     const canEditNote = (n) => isAdmin() || (!!n.created_by && n.created_by.toLowerCase() === currentUser().email.toLowerCase());
-    const NAV_ICON = { notes: 'file', users: 'users', history: 'clock', sync: 'sync', whatsNew: 'star', profile: 'user' };
+    const NAV_ICON = { notes: 'file', users: 'users', history: 'clock', sync: 'sync', whatsNew: 'star', profile: 'user', install: 'download' };
     let curNav = null;
 
     function buildNav() {
@@ -994,10 +1001,10 @@
 
     // ---------- Routing ----------
     // #/notes, #/notes/new, #/notes/edit/<id>, #/notes/view/<id>, #/users, #/users/new, #/users/edit/<id>,
-    // #/history, #/sync, #/profile, #/whats-new
+    // #/history, #/sync, #/profile, #/whats-new, #/install
     let curSection = null, curRun = null;
-    const SECTIONS = ['notes', 'editor', 'viewer', 'users', 'userEditor', 'history', 'sync', 'profile', 'whatsNew'];
-    const SECTION_NAV = { notes: 'notes', editor: 'notes', viewer: 'notes', users: 'users', userEditor: 'users', history: 'history', sync: 'sync', profile: 'profile', whatsNew: 'whatsNew' };
+    const SECTIONS = ['notes', 'editor', 'viewer', 'users', 'userEditor', 'history', 'sync', 'profile', 'whatsNew', 'install'];
+    const SECTION_NAV = { notes: 'notes', editor: 'notes', viewer: 'notes', users: 'users', userEditor: 'users', history: 'history', sync: 'sync', profile: 'profile', whatsNew: 'whatsNew', install: 'install' };
 
     function show(view) {
       for (const v of ['landing', 'login', 'app']) $(v).classList.toggle('hidden', v !== view);
@@ -1032,6 +1039,7 @@
       } else if (admin && page === 'history') route('history', loadHistory);
       else if (page === 'sync') route('sync', renderSync);
       else if (page === 'profile') route('profile', loadProfile);
+      else if (page === 'install') route('install', renderInstall);
       else if (admin && page === 'whats-new') route('whatsNew', renderNews);
       // Unknown pages, and admin pages for a normal user, go to Notes
       if (!sec) return (location.hash = '#/notes');
@@ -1796,7 +1804,7 @@
       $('installBtn').classList.toggle('hidden', ios);
       $('installBar').classList.remove('hidden');
     }
-    // Install section on the Sync page: always available, even after the bar was closed
+    // Mobile app page: always available, even after the bar was closed
     function renderInstall() {
       const key = appInstalled ? 'installDone' : installPrompt ? 'installHint' : isIos ? 'installIos' : 'installMenu';
       setI18n($('installState'), key);
