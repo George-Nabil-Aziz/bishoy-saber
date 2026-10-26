@@ -6,6 +6,8 @@
   <title>Notes</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <meta name="theme-color" content="#7c3aed" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -296,6 +298,16 @@
     </div>
   </div>
 
+  <div id="installBar" class="install-bar hidden">
+    <img src="icons/icon-192.png" alt="" />
+    <div class="install-text">
+      <strong data-i18n="installTitle"></strong>
+      <small id="installHint"></small>
+    </div>
+    <button type="button" class="btn" id="installBtn" data-i18n="installBtn"></button>
+    <button type="button" class="install-close" id="installClose" aria-label="Close">✕</button>
+  </div>
+
   <div id="toasts"></div>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
@@ -370,6 +382,8 @@
         savedLocal: 'اتحفظ في المتصفح — هيترفع لما الاتصال يرجع',
         staleCopy: 'بتشوف نسخة محفوظة على الجهاز (مفيش اتصال بالسيرفر)',
         conn_online: 'متصل', conn_offline: 'مفيش إنترنت', conn_unreachable: 'السيرفر مش متاح',
+        installTitle: 'نزّل التطبيق على جهازك', installHint: 'يفتح بسرعة ويشتغل من غير إنترنت', installBtn: 'تثبيت',
+        installIos: 'اضغط زرار المشاركة وبعدين "إضافة إلى الشاشة الرئيسية"',
         needOnline: 'لازم يبقى فيه اتصال الأول', notFound: 'مش موجود', profileSaved: 'تم حفظ بياناتك ✓',
         colWhen: 'الوقت', colUser: 'المستخدم', colAction: 'العملية', colTarget: 'الهدف', colDetails: 'التفاصيل',
         allActions: 'كل العمليات', noHistory: 'مافيش سجل لسه', hideBtn: 'إخفاء',
@@ -445,6 +459,8 @@
         savedLocal: 'Saved in the browser — will upload when the connection is back',
         staleCopy: 'Showing the copy saved on this device (server not reachable)',
         conn_online: 'Online', conn_offline: 'Offline', conn_unreachable: 'Server unreachable',
+        installTitle: 'Install the app on your device', installHint: 'Opens fast and works offline', installBtn: 'Install',
+        installIos: 'Tap Share then "Add to Home Screen"',
         needOnline: 'You need a connection first', notFound: 'Not found', profileSaved: 'Profile saved ✓',
         colWhen: 'When', colUser: 'User', colAction: 'Action', colTarget: 'Target', colDetails: 'Details',
         allActions: 'All actions', noHistory: 'No history yet', hideBtn: 'Hide',
@@ -1748,6 +1764,38 @@
         return li;
       }));
     }
+
+    // ---------- Install app (PWA) ----------
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+    let installPrompt = null;
+    const isStandalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    function showInstallBar(ios) {
+      if (isStandalone || store.get('installDismissed') === '1') return;
+      $('installHint').dataset.i18n = ios ? 'installIos' : 'installHint';
+      $('installHint').textContent = t($('installHint').dataset.i18n);
+      $('installBtn').classList.toggle('hidden', ios);
+      $('installBar').classList.remove('hidden');
+    }
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      installPrompt = e;
+      showInstallBar(false);
+    });
+    if (isIos) showInstallBar(true);
+    $('installBtn').addEventListener('click', async () => {
+      if (!installPrompt) return;
+      installPrompt.prompt();
+      await installPrompt.userChoice;
+      installPrompt = null;
+      $('installBar').classList.add('hidden');
+    });
+    $('installClose').addEventListener('click', () => {
+      store.set('installDismissed', '1');
+      $('installBar').classList.add('hidden');
+    });
+    window.addEventListener('appinstalled', () => $('installBar').classList.add('hidden'));
 
     // ---------- Start ----------
     applyLang();
