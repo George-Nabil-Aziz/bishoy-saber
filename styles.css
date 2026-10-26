@@ -1,24 +1,24 @@
 :root {
-  --bg: #f6f4ff;
-  --bg-accent: radial-gradient(circle at 15% 0%, #ede9fe 0, transparent 45%), radial-gradient(circle at 90% 100%, #fce7f3 0, transparent 40%);
+  --bg: #f7f6fb;
+  --bg-accent: radial-gradient(circle at 15% 0%, #efeafd 0, transparent 45%), radial-gradient(circle at 90% 100%, #fdf0f6 0, transparent 40%);
   --surface: #ffffff;
-  --surface-hover: #f5f3ff;
-  --text: #1e1b4b;
-  --muted: #6b7280;
-  --border: #e4e0f5;
-  --input-bg: #fbfaff;
-  --primary: #7c3aed;
+  --surface-hover: #f4f1fd;
+  --text: #1c1936;
+  --muted: #5f5b78;
+  --border: #dedaee;
+  --input-bg: #faf9fd;
+  --primary: #6d28d9;
   --primary-2: #db2777;
-  --primary-soft: #ede9fe;
-  --sidebar: #1e1b4b;
-  --sidebar-text: #c7c2ea;
-  --sidebar-hover: #2e2a63;
-  --ok: #059669;
+  --primary-soft: #efe9fd;
+  --sidebar: #1c1936;
+  --sidebar-text: #cdc8ec;
+  --sidebar-hover: #2c2858;
+  --ok: #047857;
   --err: #dc2626;
   --err-soft: #fee2e2;
-  --warn: #d97706;
+  --warn: #b45309;
   --warn-soft: #fef3c7;
-  --shadow: 0 10px 30px rgba(76, 29, 149, .08);
+  --shadow: 0 1px 2px rgba(28, 25, 54, .05), 0 8px 24px rgba(76, 29, 149, .07);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -322,7 +322,13 @@ input[readonly] { opacity: .6; cursor: not-allowed; }
 /* ---------- Connection status ---------- */
 .conn { display: flex; align-items: center; gap: 8px; margin: -12px 4px 18px; font-size: 13px; color: var(--sidebar-text); }
 .conn-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; background: var(--muted); }
-.conn-dot.online { background: #22c55e; box-shadow: 0 0 0 3px rgba(34, 197, 94, .2); }
+.conn-dot.online { background: #22c55e; box-shadow: 0 0 0 0 rgba(34, 197, 94, .6); animation: conn-pulse 1.6s ease-out infinite; }
+@keyframes conn-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, .6); opacity: 1; }
+  50% { opacity: .55; }
+  100% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .conn-dot.online { animation: none; box-shadow: 0 0 0 3px rgba(34, 197, 94, .2); } }
 .conn-dot.offline { background: #ef4444; box-shadow: 0 0 0 3px rgba(239, 68, 68, .2); }
 .conn-dot.unreachable { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245, 158, 11, .2); }
 .topbar .conn-dot { display: none; }
