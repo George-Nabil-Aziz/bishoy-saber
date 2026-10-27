@@ -1,6 +1,11 @@
 :root {
-  --bg: #f4f3f9;
-  --bg-accent: radial-gradient(circle at 0% 0%, rgba(124, 58, 237, .07) 0, transparent 40%), radial-gradient(circle at 100% 100%, rgba(219, 39, 119, .05) 0, transparent 40%);
+  --bg: #f6f4ff;
+  /* Aurora glow from the top, soft pink and sky glows below, over a faint dot grid */
+  --bg-accent:
+    radial-gradient(ellipse 90% 55% at 50% -10%, rgba(139, 92, 246, .38), transparent 70%),
+    radial-gradient(ellipse 55% 45% at 100% 100%, rgba(236, 72, 153, .20), transparent 70%),
+    radial-gradient(ellipse 50% 40% at 0% 85%, rgba(56, 189, 248, .20), transparent 70%),
+    radial-gradient(rgba(109, 40, 217, .10) 1px, transparent 1.5px) 0 0 / 22px 22px;
   --surface: #ffffff;
   --surface-hover: #f4f1fd;
   --text: #1c1936;
@@ -10,10 +15,12 @@
   --primary: #6d28d9;
   --primary-2: #db2777;
   --primary-soft: #efe9fd;
-  --sidebar: #ffffff;
-  --sidebar-text: #5f5b78;
-  --sidebar-strong: #1c1936;
-  --sidebar-hover: #f1edfd;
+  /* Header: lavender to pink band; sidebar: soft violet fading to blush */
+  --topbar: linear-gradient(90deg, #ddd6fe, #e9d5ff 50%, #fbcfe8);
+  --sidebar: linear-gradient(180deg, #ede9fe, #f5edff 55%, #fce7f3);
+  --sidebar-text: #4c3d7a;
+  --sidebar-strong: #2e1065;
+  --sidebar-hover: rgba(255, 255, 255, .7);
   --toast-bg: #1c1936;
   --ok: #047857;
   --err: #dc2626;
@@ -36,6 +43,7 @@
     --primary-2: #f472b6;
     --primary-soft: #2a2350;
     --sidebar: #0a0915;
+    --topbar: #17142a;
     --sidebar-text: #a9a3d1;
     --sidebar-hover: #1d1a36;
     --sidebar-strong: #ffffff;
@@ -61,6 +69,7 @@
   --primary-2: #f472b6;
   --primary-soft: #2a2350;
   --sidebar: #0a0915;
+  --topbar: #17142a;
   --sidebar-text: #a9a3d1;
   --sidebar-hover: #1d1a36;
   --sidebar-strong: #ffffff;

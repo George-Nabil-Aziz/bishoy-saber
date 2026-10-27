@@ -4,6 +4,7 @@
 .app-body { flex: 1; display: flex; min-height: 0; }
 aside {
   width: 230px; background: var(--sidebar); color: var(--sidebar-text); padding: 20px 14px;
+  backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
   border-inline-end: 1px solid var(--border);
   display: flex; flex-direction: column; gap: 6px; flex-shrink: 0;
 }
