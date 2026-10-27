@@ -325,6 +325,13 @@ input[readonly] { opacity: .6; cursor: not-allowed; }
 }
 .topbar .signout { height: 38px; padding: 0 14px; background: var(--err-soft); border-color: var(--err); color: var(--err); }
 .topbar .signout:hover { filter: brightness(.96); }
+.menu-btn {
+  display: none; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+.menu-btn:hover { background: var(--surface-hover); }
+.menu-btn svg { width: 20px; height: 20px; }
+.sidebar-backdrop { display: none; }
 
 /* ---------- Connection status ---------- */
 .conn { display: flex; align-items: center; gap: 8px; margin: -12px 4px 18px; font-size: 13px; color: var(--sidebar-text); }
@@ -442,7 +449,7 @@ tr.detail-row td { background: var(--input-bg); }
 @media (max-width: 640px) {
   .nav .brand-name { display: none; }
   .hero { padding: 40px 0 30px; }
-  .app-body { flex-direction: column; }
+  .app-body { position: relative; }
   .topbar { padding: 8px 12px; gap: 8px; }
   .topbar .brand-name { display: none; }
   .topbar .conn-dot { display: block; margin-inline-start: auto; }
@@ -450,12 +457,20 @@ tr.detail-row td { background: var(--input-bg); }
   .topbar .toggle { padding: 0 8px; }
   .topbar .signout { width: 38px; padding: 0; }
   .topbar .signout .nav-label { display: none; }
-  aside { width: 100%; flex-direction: row; overflow-x: auto; align-items: center; gap: 6px; padding: 8px 12px; border-inline-end: 0; border-bottom: 1px solid var(--border); }
-  aside nav { flex-direction: row; gap: 4px; }
-  aside nav a { padding: 9px 10px; position: relative; }
-  aside nav a .nav-label { display: none; }
-  aside nav a .count { position: absolute; top: 0; inset-inline-end: 0; padding: 0 5px; }
-  .who-block { display: none; }
+  .menu-btn { display: grid; }
+  /* Sidebar becomes an off-canvas drawer */
+  aside {
+    position: absolute; top: 0; bottom: 0; inset-inline-start: 0; z-index: 30; width: 260px; max-width: 82vw;
+    overflow-y: auto; box-shadow: 0 10px 40px rgba(0, 0, 0, .25);
+    transform: translateX(-100%); visibility: hidden; transition: transform .25s ease, visibility .25s;
+  }
+  [dir="rtl"] aside { transform: translateX(100%); }
+  #app.sidebar-open aside { transform: none; visibility: visible; }
+  .sidebar-backdrop {
+    display: block; position: absolute; inset: 0; z-index: 29; background: rgba(0, 0, 0, .4);
+    opacity: 0; pointer-events: none; transition: opacity .25s;
+  }
+  #app.sidebar-open .sidebar-backdrop { opacity: 1; pointer-events: auto; }
   main { padding: 20px 16px; }
   .card { padding: 20px; }
   .user-form { grid-template-columns: 1fr; }
