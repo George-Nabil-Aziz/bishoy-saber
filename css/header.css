@@ -1,0 +1,20 @@
+/* ---------- Header ---------- */
+.topbar {
+  display: flex; align-items: center; gap: 10px; padding: 8px 16px; flex-shrink: 0;
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.topbar .logo { width: 36px; height: 36px; font-size: 18px; border-radius: 10px; }
+.topbar .brand-name { font-weight: 800; font-size: 18px; }
+.topbar .toggles { margin-inline-start: auto; }
+.signout {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 10px; font-weight: 700; border: 1px solid;
+}
+.topbar .signout { height: 38px; padding: 0 14px; background: var(--err-soft); border-color: var(--err); color: var(--err); }
+.topbar .signout:hover { filter: brightness(.96); }
+.menu-btn {
+  display: none; place-items: center; width: 38px; height: 38px; flex-shrink: 0; border-radius: 10px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+}
+.menu-btn:hover { background: var(--surface-hover); }
+.menu-btn svg { width: 20px; height: 20px; }
+.sidebar-backdrop { display: none; }

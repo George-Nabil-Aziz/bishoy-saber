@@ -1,0 +1,36 @@
+/* ---------- Profile ---------- */
+.profile-head { display: flex; align-items: center; gap: 16px; margin-bottom: 8px; flex-wrap: wrap; }
+.profile-head .avatar { width: 72px; height: 72px; font-size: 28px; }
+.profile-head h1 { margin: 0; }
+.profile-head small { display: block; color: var(--muted); direction: ltr; text-align: start; }
+
+/* ---------- What's new ---------- */
+.timeline { list-style: none; margin: 18px 0 0; padding: 0; }
+.timeline li { position: relative; padding-inline-start: 26px; padding-bottom: 20px; border-inline-start: 2px solid var(--border); margin-inline-start: 6px; }
+.timeline li::before { content: ""; position: absolute; top: 4px; inset-inline-start: -7px; width: 12px; height: 12px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--primary-2)); }
+.timeline li:last-child { border-inline-start-color: transparent; padding-bottom: 0; }
+.timeline h3 { margin: 0 0 2px; font-size: 16px; }
+.timeline p { margin: 0; color: var(--muted); line-height: 1.7; }
+.timeline .date { font-size: 12px; color: var(--primary); font-weight: 700; }
+
+/* ---------- Sync ---------- */
+.sync-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.sync-actions .btn { padding: 10px 18px; font-size: 15px; }
+.conflict { border: 1px solid var(--warn); border-radius: 12px; padding: 14px; margin-top: 12px; background: var(--warn-soft); }
+.conflict h3 { margin: 0 0 4px; font-size: 16px; }
+.conflict .meta { color: var(--muted); font-size: 13px; margin-bottom: 10px; }
+.sides { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.side { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px; min-width: 0; }
+.side h4 { margin: 0 0 6px; font-size: 14px; color: var(--primary); }
+.side dl { margin: 0; }
+.side dt { font-size: 12px; color: var(--muted); margin-top: 6px; }
+.side dd { margin: 0; word-break: break-word; white-space: pre-wrap; }
+.side dd.diff { color: var(--err); font-weight: 700; }
+.side img { max-width: 100%; max-height: 120px; border-radius: 8px; }
+.conflict .form-actions { margin-top: 12px; }
+.diff-table { min-width: 0; }
+.diff-table td { vertical-align: top; word-break: break-word; }
+.diff-table td.changed { color: var(--err); font-weight: 700; }
+
+
+tr.changed td { color: var(--err); font-weight: 700; }

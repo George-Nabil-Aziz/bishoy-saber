@@ -1,6 +1,6 @@
 // Network-first app shell: always serve the latest files online, fall back to the cache offline.
-const CACHE = 'notes-v2';
-const SHELL = ['./', 'index.html', 'styles.css', 'config.js', 'js/core.js', 'js/i18n.js', 'js/ui.js', 'js/data.js', 'js/app.js', 'js/notes.js', 'js/users.js', 'js/history.js', 'js/sync-page.js', 'js/extras.js', 'js/main.js', 'favicon.svg', 'manifest.json'];
+const CACHE = 'notes-v3';
+const SHELL = ['./', 'index.html', 'css/base.css', 'css/landing.css', 'css/login.css', 'css/app.css', 'css/header.css', 'css/status.css', 'css/tables.css', 'css/pages.css', 'css/toasts.css', 'css/install.css', 'css/mobile.css', 'config.js', 'js/core.js', 'js/i18n.js', 'js/ui.js', 'js/data.js', 'js/app.js', 'js/notes.js', 'js/users.js', 'js/history.js', 'js/sync-page.js', 'js/extras.js', 'js/main.js', 'favicon.svg', 'manifest.json'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
