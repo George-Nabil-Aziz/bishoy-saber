@@ -41,9 +41,10 @@ const setFormMsg = (f, text, cls = '') => { f.msg.textContent = text; f.msg.clas
 function syncUserFormTexts(f) {
   const edit = !!f.editing;
   f.btn.textContent = t(edit ? 'save' : 'addUser');
-  f.password.required = !edit;
-  f.pwLabel.classList.toggle('req', !edit);
-  f.pwHint.classList.toggle('hidden', !edit);
+  const needPw = !edit || f.editing.auth_id === null; // a legacy user gets their login when an admin sets a password
+  f.password.required = needPw;
+  f.pwLabel.classList.toggle('req', needPw);
+  f.pwHint.classList.toggle('hidden', needPw);
 }
 
 // u = user to edit, or null to add
@@ -53,8 +54,9 @@ function fillUserForm(f, u) {
   f.name.value = u ? rawName(u) : '';
   f.email.value = u ? u.email : '';
   f.role.value = u && u.role === 'admin' || (u && isOwner(u.email)) ? 'admin' : 'user';
-  // The owner's email is fixed (it protects the account from being deleted); owner and self keep their role
-  f.email.readOnly = !!u && isOwner(u.email);
+  // The owner's email is fixed (it protects the account from being deleted); owner and self keep their role.
+  // On the profile page the email is fixed too: only an admin changes an email (it is the login)
+  f.email.readOnly = !!u && (isOwner(u.email) || f === pf);
   f.role.disabled = !!u && (isOwner(u.email) || isMe(u));
   setPreview(f, u && u.avatar_url);
   setFormMsg(f, '');
@@ -66,13 +68,17 @@ async function submitUserForm(e, f) {
   f.btn.disabled = true;
   const u = f.editing;
   const profile = f === pf;
-  const row = { name: f.name.value.trim(), email: f.email.value.trim().toLowerCase() };
-  if (f.password.value) row.password = f.password.value;
-  if (!profile) row.role = f.role.value;
+  // Profile: own name/photo through the table, own password through Auth. Admin form: through the edge function.
+  const row = { name: f.name.value.trim() };
+  if (!profile) {
+    row.email = f.email.value.trim().toLowerCase();
+    row.role = f.role.value;
+    if (f.password.value) row.password = f.password.value;
+  }
 
-  const details = { name: row.name, email: row.email };
+  const details = { name: row.name, email: profile ? u.email : row.email };
   if (row.role) details.role = row.role;
-  const it = baseItem(u ? 'user-edit' : 'user-add', u && u.id, row, row.name,
+  const it = baseItem(profile ? 'profile-edit' : u ? 'user-edit' : 'user-add', u && u.id, row, row.name,
     { action: profile ? 'profile.edit' : u ? 'user.edit' : 'user.add', targetType: 'user', targetId: u && u.id, details });
   it.targetEmail = u && u.email;
   it.imageFile = f.photo.files[0] || null;
@@ -80,15 +86,21 @@ async function submitUserForm(e, f) {
   try {
     setFormMsg(f, t(it.imageFile && net === 'online' ? 'uploading' : 'saving'));
     const r = await runOp(it);
+    let pwError = null;
+    if (profile && f.password.value) {
+      if (net !== 'online') pwError = t('needOnline');
+      else pwError = ((await db.auth.updateUser({ password: f.password.value })).error || {}).message || null;
+    }
     // Keep the sidebar in sync when editing yourself
     if (u && isMe(u)) {
       const me = currentUser();
-      saveSession({ ...me, name: row.name, email: row.email, avatar_url: r.data ? r.data.avatar_url : me.avatar_url });
+      saveSession({ ...me, name: row.name, email: row.email || me.email, avatar_url: r.data ? r.data.avatar_url : me.avatar_url });
     }
     if (r.mode === 'queued') toast(t('savedLocal'), 'warn');
     if (profile) {
       loadProfile();
-      setFormMsg(f, t(r.mode === 'queued' ? 'savedLocal' : 'profileSaved'), 'ok');
+      if (pwError) setFormMsg(f, t('error') + pwError, 'err');
+      else setFormMsg(f, t(r.mode === 'queued' ? 'savedLocal' : 'profileSaved'), 'ok');
     } else {
       if (r.mode === 'online') toast(t(u ? 'userUpdated' : 'userAdded'), 'ok');
       location.hash = '#/users';
@@ -122,7 +134,7 @@ async function withPendingUsers(rows) {
 
 async function loadUsers() {
   setText('usersMsg', t('loading'));
-  const res = await cached('users', () => db.from('users').select('id, name, email, avatar_url, role').order('created_at'));
+  const res = await cached('users', () => db.from('users').select(USER_COLS).order('created_at'));
   if (res.error) { $('usersTable').innerHTML = ''; return setText('usersMsg', t('error') + res.error.message, 'err'); }
   setText('usersMsg', res.stale ? t('staleCopy') : '');
   const rows = await withPendingUsers(res.data);
@@ -134,6 +146,7 @@ async function loadUsers() {
       // The owner and the signed-in user can't be removed
       const tag = isOwner(u.email) ? 'owner' : isMe(u) ? 'you' : null;
       if (tag) s.append(' ', el('span', 'badge', t(tag)));
+      if (u.auth_id === null) s.append(' ', el('span', 'badge', t('noLogin')));
       if (u._pending) s.append(pendingBadge());
       return s;
     } },
@@ -166,11 +179,11 @@ async function deleteUser(u, btn) {
   loadUsers();
 }
 
-// One user by id (without password): server or saved copy, with queued edits applied
+// One user by id: server or saved copy, with queued edits applied
 async function getUser(id) {
   let data;
   if (net === 'online') {
-    const r = await db.from('users').select('id, name, email, avatar_url, role').eq('id', id).maybeSingle();
+    const r = await db.from('users').select(USER_COLS).eq('id', id).maybeSingle();
     if (!r.error) data = r.data;
     else if (!isNetErr(r.error)) throw r.error;
   }

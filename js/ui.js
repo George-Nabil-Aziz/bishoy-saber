@@ -17,6 +17,7 @@ function addEye(input) {
   wrap.append(input, btn);
 }
 addEye($('password'));
+addEye($('newPassword'));
 
 // ---------- Theme ----------
 const isDark = () => {
@@ -62,13 +63,15 @@ function toast(text, kind = '', link) {
 }
 
 // ---------- Session / roles ----------
-const isLoggedIn = () => store.get('loggedIn') === '1';
+// True once the Supabase session is confirmed (see initAuth in app.js)
+let authed = false;
+const isLoggedIn = () => authed;
 
-// Logged-in user as { id, name, email, avatar_url, role }; older sessions without it are the owner
+// Logged-in user's row { id, name, email, avatar_url, role, auth_id }, cached in localStorage for offline use
 function currentUser() {
-  try { return JSON.parse(store.get('user')) || { email: USER.email }; } catch { return { email: USER.email }; }
+  try { return JSON.parse(store.get('user')) || { email: '' }; } catch { return { email: '' }; }
 }
-const isOwner = (email) => email.toLowerCase() === USER.email;
+const isOwner = (email) => (email || '').toLowerCase() === OWNER_EMAIL;
 const isAdmin = () => { const u = currentUser(); return u.role === 'admin' || isOwner(u.email); };
 const isMe = (u) => u.email.toLowerCase() === currentUser().email.toLowerCase();
 // The owner's default name is translated; a renamed owner shows the new name
@@ -102,8 +105,9 @@ function updateWho() {
 // Re-reads the signed-in user's row (role, photo...) once the server is reachable
 async function refreshMe() {
   if (net !== 'online') return;
-  const { data } = await db.from('users').select('id, name, email, avatar_url, role').eq('email', currentUser().email).maybeSingle();
-  if (!data) return;
+  const { data, error } = await db.from('users').select(USER_COLS).eq('id', currentUser().id).maybeSingle();
+  if (error) return;
+  if (!data) { await dropSession(); setText('loginMsg', t('noAccount'), 'err'); location.hash = '#/login'; return render(); } // row removed
   const wasAdmin = isAdmin();
   saveSession(data);
   if (wasAdmin !== isAdmin()) { buildNav(); render(); }

@@ -12,7 +12,6 @@ jobs:
     steps:
       - name: Ping Supabase
         run: |
-          curl -sf "https://kvnvyxpnaogekbmelnug.supabase.co/rest/v1/entries?select=id&limit=1" \
-            -H "apikey: sb_publishable_16L7jf6nP8n3a8twcv_bMQ_04YZALky" \
-            -H "Authorization: Bearer sb_publishable_16L7jf6nP8n3a8twcv_bMQ_04YZALky" \
-            -H "Accept-Profile: bishoy_saber_notes"
+          # The tables are closed to the anon key, so ping the Auth health endpoint (needs only the key)
+          curl -sf "https://kvnvyxpnaogekbmelnug.supabase.co/auth/v1/health" \
+            -H "apikey: sb_publishable_16L7jf6nP8n3a8twcv_bMQ_04YZALky"

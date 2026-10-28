@@ -1,4 +1,6 @@
-const USER = { email: 'bishoy.saber@gmail.com', password: '123456789' };
+const OWNER_EMAIL = 'bishoy.saber@gmail.com';
+// Opened from the password-reset email (read before supabase-js clears the URL)
+let recovering = /type=recovery/.test(location.hash);
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: 'bishoy_saber_notes' } });
 const $ = (id) => document.getElementById(id);
 // Tiny element builder: el('span', 'cls', 'text')

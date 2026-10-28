@@ -32,7 +32,8 @@ async function refreshPending() {
   } catch {}
 }
 
-// A queued operation. kind: note-add|note-edit|note-delete|user-add|user-edit|user-delete|audit
+// A queued operation. kind: note-add|note-edit|note-delete|user-add|user-edit|user-delete|profile-edit|audit
+// (user-* are admin actions through the edge function and need a connection; profile-edit is the user's own name/photo)
 function baseItem(kind, targetId, row, label, auditInfo) {
   const u = currentUser();
   return { kind, targetId, row, label, audit: auditInfo, by: u.email, byName: rawName(u), at: new Date().toISOString(), base_updated_at: null };
@@ -98,11 +99,20 @@ function removeImage(bucket, url) {
 // ---------- Applying an operation to the server ----------
 const must = ({ data, error }) => { if (error) throw error; return data; };
 const conflict = (reason, server) => Object.assign(new Error('conflict'), { conflict: reason, server });
+// Add / edit / delete another user: edge function "admin-users" (creates the login too)
+async function adminCall(action, body) {
+  const { data, error } = await db.functions.invoke('admin-users', { body: { action, ...body } });
+  if (!error) return data;
+  if (error.name === 'FunctionsFetchError') throw new Error('Failed to fetch');
+  let j = null;
+  try { j = await error.context.json(); } catch {}
+  throw Object.assign(new Error((j && j.error) || error.message), { code: j && j.code });
+}
 const userQ = (q, it) => (it.targetId ? q.eq('id', it.targetId) : q.eq('email', it.targetEmail));
 
 // Uploads/removes the item's image around `write(row)`; cleans up if the write fails
 async function withImage(it, oldUrl, write) {
-  const [bucket, col, max, square] = it.kind.startsWith('user') ? ['avatars', 'avatar_url', 256, true] : [NOTE_IMAGES, 'image_url', 1280, false];
+  const [bucket, col, max, square] = /^(user|profile)/.test(it.kind) ? ['avatars', 'avatar_url', 256, true] : [NOTE_IMAGES, 'image_url', 1280, false];
   const row = { ...it.row };
   let url = null;
   if (it.imageFile) url = row[col] = await uploadImage(bucket, it.imageFile, max, square);
@@ -144,24 +154,31 @@ async function applyItem(it, force) {
       return null;
     }
     case 'user-add':
-      return withImage(it, null, async (row) => must(await db.from('users').insert(row).select('id').single()));
+      return withImage(it, null, (row) => adminCall('create', row));
     case 'user-edit': {
       const cur = must(await userQ(db.from('users').select('id, avatar_url'), it).maybeSingle());
       if (!cur) throw force ? new Error(t('notFound')) : conflict('deleted', null);
-      return withImage(it, cur.avatar_url, async (row) => must(await userQ(db.from('users').update(row), it).select('id, avatar_url').single()));
+      return withImage(it, cur.avatar_url, (row) => adminCall('update', { ...row, id: cur.id }));
     }
     case 'user-delete': {
       const cur = must(await db.from('users').select('id, avatar_url').eq('id', it.targetId).maybeSingle());
       if (!cur) return null;
-      must(await db.from('users').delete().eq('id', it.targetId));
+      await adminCall('delete', { id: cur.id });
       removeImage('avatars', cur.avatar_url);
       return null;
+    }
+    case 'profile-edit': {
+      const cur = must(await db.from('users').select('id, avatar_url').eq('id', it.targetId).maybeSingle());
+      if (!cur) throw new Error(t('notFound'));
+      return withImage(it, cur.avatar_url, async (row) => must(await db.from('users').update(row).eq('id', cur.id).select('id, avatar_url').single()));
     }
   }
 }
 
 // Runs an operation now when online, otherwise queues it. Throws real (non-network) errors.
 async function runOp(it) {
+  const needsNet = it.kind.startsWith('user-'); // admin user actions are never queued
+  if (needsNet && net !== 'online') throw new Error(t('needOnline'));
   if (net === 'online') {
     try {
       const data = await applyItem(it, true);
@@ -170,6 +187,7 @@ async function runOp(it) {
       return { mode: 'online', data };
     } catch (err) {
       if (!isNetErr(err)) throw err;
+      if (needsNet) throw new Error(t('needOnline'));
     }
   }
   it.qid = await qPut(it);
@@ -191,7 +209,7 @@ async function syncNow() {
         const data = await applyItem(it, false);
         await qDel(it.qid);
         if (it.kind !== 'audit') { done++; auditItem(it, data); }
-        if (it.kind.startsWith('user')) userOps = true;
+        if (/^(user|profile)/.test(it.kind)) userOps = true;
       } catch (err) {
         if (isNetErr(err)) break; // connection dropped, try again later
         await qDel(it.qid);

@@ -1,48 +1,98 @@
-// ---------- Login ----------
-// Demo accounts: every user, click to fill the form (falls back to the owner when offline)
-async function loadPersonas() {
-  const { data } = await db.from('users').select('name, email, password, avatar_url, role').order('created_at');
-  const users = data && data.length ? data : [{ ...USER, role: 'admin' }];
-  $('personas').replaceChildren(...users.map((u) => {
-    const b = el('button', 'persona');
-    b.type = 'button';
-    const avatar = el('span', 'avatar');
-    fillAvatar(avatar, u);
-    const info = el('span', 'persona-info');
-    info.append(el('strong', null, displayName(u)), el('small', null, u.email));
-    const role = el('span', 'badge' + (u.role === 'admin' ? ' admin' : ''), t(u.role === 'admin' ? 'roleAdmin' : 'roleUser'));
-    b.append(avatar, info, role);
-    b.addEventListener('click', () => { $('email').value = u.email; $('password').value = u.password; });
-    return b;
-  }));
+// ---------- Login (Supabase Auth) ----------
+// supabase-js keeps the session in localStorage; the user's row is cached under "user" so the app opens offline
+const USER_COLS = 'id, name, email, avatar_url, role, auth_id';
+const authKeys = () => { try { return Object.keys(localStorage).filter((k) => /^sb-.*-auth-token/.test(k)); } catch { return []; } };
+
+// Signs out locally (works offline) and forgets the cached user and lists
+async function dropSession() {
+  authed = false;
+  try { await db.auth.signOut({ scope: 'local' }); } catch {}
+  try {
+    authKeys().forEach((k) => localStorage.removeItem(k));
+    Object.keys(localStorage).filter((k) => k.startsWith('cache:')).forEach((k) => localStorage.removeItem(k));
+  } catch {}
+  store.del('user');
+  store.del('loggedIn');
 }
+
+// Loads the signed-in user's row and opens the app; returns an error text, or null when in
+async function enterSession(session) {
+  let r;
+  try { r = await db.from('users').select(USER_COLS).eq('auth_id', session.user.id).maybeSingle(); } catch (error) { r = { error }; }
+  let row = r.data;
+  if (r.error) {
+    const old = currentUser();
+    if (isNetErr(r.error) && old.auth_id === session.user.id) row = old; // offline: use the cached row
+    else { await dropSession(); return isNetErr(r.error) ? t('conn_unreachable') : t('error') + r.error.message; }
+  } else if (!row) {
+    await dropSession();
+    return t('noAccount');
+  }
+  authed = true;
+  saveSession(row);
+  return null;
+}
+
+// Runs once at start: restores the session (no network needed) before the first render
+async function initAuth() {
+  store.del('loggedIn'); // left over from the old fake login
+  let session = null;
+  try { session = (await db.auth.getSession()).data.session; } catch {}
+  if (recovering && session) return; // render() shows the new-password form
+  const cached = currentUser();
+  if (session && cached.auth_id === session.user.id) authed = true; // refreshMe() re-checks the row once online
+  else if (session) {
+    const err = await enterSession(session);
+    if (err) setText('loginMsg', err, 'err');
+  } else if (!navigator.onLine && cached.auth_id && authKeys().length) authed = true; // offline with an expired token
+  else if (cached.auth_id) await dropSession();
+}
+
+db.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY') { recovering = true; setTimeout(() => render()); }
+  else if (event === 'SIGNED_OUT' && authed) setTimeout(async () => { await dropSession(); location.hash = '#/login'; render(); }); // e.g. signed out in another tab
+});
+
+// The login page shows either the sign-in form or the new-password form
+const showAuthForm = (which) => { $('loginForm').classList.toggle('hidden', which !== 'login'); $('resetForm').classList.toggle('hidden', which !== 'reset'); };
 
 $('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const email = $('email').value.trim().toLowerCase();
-  const password = $('password').value;
   const btn = e.submitter;
   btn.disabled = true;
-
-  const { data, error } = await db.from('users').select('id, name, email, avatar_url, role')
-    .eq('email', email).eq('password', password).maybeSingle();
+  setText('loginMsg', '');
+  const { data, error } = await db.auth.signInWithPassword({ email: $('email').value.trim().toLowerCase(), password: $('password').value });
+  const err = error ? (error.status === 400 ? t('badLogin') : t('error') + error.message) : await enterSession(data.session);
   btn.disabled = false;
+  if (err) return setText('loginMsg', err, 'err');
+  net = 'online';
+  updateWho();
+  audit('login', 'session', null, null);
+  location.hash = '#/notes';
+  checkStatus();
+});
 
-  // Owner can still sign in with the default password if the users table is unreachable
-  const user = data || (error && email === USER.email && password === USER.password ? { email } : null);
-  if (user) {
-    store.set('loggedIn', '1');
-    store.set('user', JSON.stringify(user));
-    $('loginMsg').textContent = '';
-    net = 'online';
-    updateWho();
-    audit('login', 'session', null, null);
-    location.hash = '#/notes';
-    checkStatus();
-  } else {
-    $('loginMsg').textContent = error ? t('error') + error.message : t('badLogin');
-    $('loginMsg').className = 'msg err';
-  }
+$('forgotBtn').addEventListener('click', async () => {
+  const email = $('email').value.trim().toLowerCase();
+  if (!email) return setText('loginMsg', t('enterEmail'), 'err');
+  const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  setText('loginMsg', error ? t('error') + error.message : t('resetSent'), error ? 'err' : 'ok');
+});
+
+// Opened from the reset email: the link already signed the user in, they only pick a new password
+$('resetForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const { error } = await db.auth.updateUser({ password: $('newPassword').value });
+  if (error) return setText('resetMsg', t('error') + error.message, 'err');
+  const { data } = await db.auth.getSession();
+  const err = data.session ? await enterSession(data.session) : t('badLogin');
+  recovering = false;
+  $('resetForm').reset();
+  setText('resetMsg', '');
+  if (err) setText('loginMsg', err, 'err');
+  else { net = 'online'; audit('password.reset', 'session', null, null); checkStatus(); }
+  history.replaceState(null, '', err ? '#/login' : '#/notes');
+  render();
 });
 
 // Mobile: the sidebar is a slide-in drawer
@@ -55,10 +105,9 @@ $('sidebarBackdrop').addEventListener('click', () => setSidebar(false));
 $('nav').addEventListener('click', (e) => { if (e.target.closest('a')) setSidebar(false); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') setSidebar(false); });
 
-$('signout').addEventListener('click', () => {
-  audit('logout', 'session', null, null);
-  store.del('loggedIn');
-  store.del('user');
+$('signout').addEventListener('click', async () => {
+  await audit('logout', 'session', null, null); // while the session still exists
+  await dropSession();
   $('loginForm').reset();
   location.hash = '#/';
 });
@@ -103,13 +152,14 @@ function show(view) {
 function render() {
   const [, page, sub, id] = location.hash.split('/');
   const loggedIn = isLoggedIn();
+  if (recovering) return (show('login'), showAuthForm('reset'));
   document.querySelectorAll('[data-enter]').forEach((a) => {
     a.href = loggedIn ? '#/notes' : '#/login';
     a.textContent = t(loggedIn ? 'openApp' : 'startNow');
   });
 
   if (!page) return show('landing');
-  if (page === 'login') return loggedIn ? (location.hash = '#/notes') : (show('login'), loadPersonas());
+  if (page === 'login') return loggedIn ? (location.hash = '#/notes') : (show('login'), showAuthForm('login'));
   if (!loggedIn) return (location.hash = '#/login');
 
   const admin = isAdmin();

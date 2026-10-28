@@ -4,7 +4,7 @@ const FIELD_LABEL = { title: 'fTitle', amount: 'fAmount', notes: 'fNotes', image
 // Fields an operation changes (password is never shown)
 function changedFields(it) {
   const ks = Object.keys(it.row || {}).filter((k) => !['password', 'image_url', 'avatar_url'].includes(k));
-  if (it.imageFile || it.imageCleared) ks.push(it.kind.startsWith('user') ? 'avatar_url' : 'image_url');
+  if (it.imageFile || it.imageCleared) ks.push(/^(user|profile)/.test(it.kind) ? 'avatar_url' : 'image_url');
   return ks;
 }
 const mineVal = (it, k) => (k === 'image_url' || k === 'avatar_url' ? blobUrl(it.imageFile) : it.row[k]);

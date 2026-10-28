@@ -118,12 +118,16 @@
         <label for="password" data-i18n="password"></label>
         <input id="password" type="password" required dir="ltr" />
         <button type="submit" class="btn block" data-i18n="login"></button>
+        <button type="button" id="forgotBtn" class="link-btn" data-i18n="forgotPw"></button>
         <div id="loginMsg" class="msg"></div>
       </form>
+      <form id="resetForm" class="hidden">
+        <label for="newPassword" data-i18n="newPassword"></label>
+        <input id="newPassword" type="password" required minlength="6" dir="ltr" autocomplete="new-password" />
+        <button type="submit" class="btn block" data-i18n="setPassword"></button>
+        <div id="resetMsg" class="msg"></div>
+      </form>
     </div>
-
-    <div class="persona-title"><span class="badge demo" data-i18n="demoBadge"></span> <span data-i18n="personaHint"></span></div>
-    <div class="personas" id="personas"></div>
   </div>
 
   <template id="userFormTpl">

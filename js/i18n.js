@@ -2,7 +2,7 @@
 const I18N = {
   ar: {
     appName: 'ملاحظاتي', welcome: 'أهلاً بيك، سجّل دخولك', email: 'الإيميل', password: 'الباسورد',
-    login: 'دخول', personaHint: 'حسابات تجريبية — اضغط على أي اسم لملء البيانات', demoBadge: 'مرحلة تجريبية', userName: 'بيشوي صابر', initial: 'ب',
+    login: 'دخول', forgotPw: 'نسيت الباسورد؟', enterEmail: 'اكتب الإيميل الأول', resetSent: 'لو الإيميل مسجّل هيوصلك لينك لتغيير الباسورد', newPassword: 'الباسورد الجديد', setPassword: 'حفظ الباسورد', noAccount: 'الحساب ده مش متسجّل في الموقع، كلّم المسؤول', needOnline: 'الإجراء ده محتاج اتصال بالإنترنت', noLogin: 'بدون دخول', userName: 'بيشوي صابر', initial: 'ب',
     badLogin: 'الإيميل أو الباسورد غلط', addNote: 'إضافة ملاحظة', history: 'السجل', signout: 'تسجيل الخروج', menu: 'القائمة',
     addTitle: 'إضافة ملاحظة', editTitle: 'تعديل ملاحظة', fTitle: 'العنوان', fAmount: 'الرقم', fNotes: 'ملاحظات',
     save: 'حفظ', saving: 'جاري الحفظ...', saved: 'تم الحفظ ✓', updated: 'تم التعديل ✓', loading: 'جاري التحميل...',
@@ -28,7 +28,7 @@ const I18N = {
     needOnline: 'لازم يبقى فيه اتصال الأول', notFound: 'مش موجود', profileSaved: 'تم حفظ بياناتك ✓',
     colWhen: 'الوقت', colUser: 'المستخدم', colAction: 'العملية', colTarget: 'الهدف', colDetails: 'التفاصيل',
     allActions: 'كل العمليات', noHistory: 'مافيش سجل لسه', hideBtn: 'إخفاء',
-    act_login: 'تسجيل دخول', act_logout: 'تسجيل خروج', act_note_add: 'إضافة ملاحظة', act_note_edit: 'تعديل ملاحظة',
+    act_login: 'تسجيل دخول', act_logout: 'تسجيل خروج', act_password_reset: 'تغيير الباسورد', act_note_add: 'إضافة ملاحظة', act_note_edit: 'تعديل ملاحظة',
     act_note_delete: 'مسح ملاحظة', act_user_add: 'إضافة مستخدم', act_user_edit: 'تعديل مستخدم', act_user_delete: 'مسح مستخدم',
     act_profile_edit: 'تعديل الحساب', act_sync: 'مزامنة', act_sync_resolve: 'حل تعارض',
     syncNow: 'زامن دلوقتي', checkChanges: 'اعرض التغييرات', pendingChanges: 'تغييرات في الانتظار',
@@ -57,6 +57,7 @@ const I18N = {
     ctaTitle: 'جاهز تبدأ؟', ctaText: 'أول ملاحظة هتاخد منك أقل من دقيقة.', footer: 'معمول بحب ❤',
     // Newest first
     news: [
+      { d: '2026-10-28', h: 'Secure sign-in', p: 'Real accounts now protect the site: only signed-in users can read or change anything. Forgot your password? Use the reset link on the login page.' },
       { d: '2026-10-27', h: 'قائمة جانبية على الموبايل', p: 'على الموبايل اضغط زرار ☰ فوق، والقائمة تطلع من الجنب بكل الصفحات واسمك وحالة الاتصال.' },
       { d: '2026-10-26', h: 'نزّل التطبيق على موبايلك', p: 'تقدر تثبّت الموقع كتطبيق على Android أو iPhone أو الكمبيوتر، ويفتح بأيقونة لوحده حتى من غير إنترنت.' },
       { d: '2026-10-26', h: 'ألوان أوضح في الوضع الفاتح', p: 'الخلفية بقت أهدى، والنصوص والحدود بقت أوضح وأسهل في القراءة.' },
@@ -85,7 +86,7 @@ const I18N = {
   },
   en: {
     appName: 'My Notes', welcome: 'Welcome back, please sign in', email: 'Email', password: 'Password',
-    login: 'Login', personaHint: 'Demo accounts — click a name to fill in the details', demoBadge: 'Trial phase', userName: 'Bishoy Saber', initial: 'B',
+    login: 'Login', forgotPw: 'Forgot password?', enterEmail: 'Enter your email first', resetSent: 'If the email is registered, a link to reset the password is on its way', newPassword: 'New password', setPassword: 'Save password', noAccount: 'This account is not registered on the site, ask an admin', needOnline: 'This action needs an internet connection', noLogin: 'No login yet', userName: 'Bishoy Saber', initial: 'B',
     badLogin: 'Wrong email or password', addNote: 'Add note', history: 'History', signout: 'Sign out', menu: 'Menu',
     addTitle: 'Add note', editTitle: 'Edit note', fTitle: 'Title', fAmount: 'Number', fNotes: 'Notes',
     save: 'Save', saving: 'Saving...', saved: 'Saved ✓', updated: 'Updated ✓', loading: 'Loading...',
@@ -111,7 +112,7 @@ const I18N = {
     needOnline: 'You need a connection first', notFound: 'Not found', profileSaved: 'Profile saved ✓',
     colWhen: 'When', colUser: 'User', colAction: 'Action', colTarget: 'Target', colDetails: 'Details',
     allActions: 'All actions', noHistory: 'No history yet', hideBtn: 'Hide',
-    act_login: 'Login', act_logout: 'Logout', act_note_add: 'Note added', act_note_edit: 'Note edited',
+    act_login: 'Login', act_logout: 'Logout', act_password_reset: 'Password reset', act_note_add: 'Note added', act_note_edit: 'Note edited',
     act_note_delete: 'Note deleted', act_user_add: 'User added', act_user_edit: 'User edited', act_user_delete: 'User deleted',
     act_profile_edit: 'Profile edited', act_sync: 'Sync', act_sync_resolve: 'Conflict resolved',
     syncNow: 'Sync now', checkChanges: 'Check changes', pendingChanges: 'Pending changes',
@@ -182,7 +183,6 @@ function applyLang() {
   document.querySelectorAll('[data-action="lang"]').forEach((b) => { b.textContent = t('otherLang'); });
   document.querySelectorAll('[data-enter]').forEach((a) => { a.textContent = t(isLoggedIn() ? 'openApp' : 'startNow'); });
   document.querySelectorAll('.pw-eye').forEach(syncEye);
-  if (!$('login').classList.contains('hidden')) loadPersonas();
   $('editorTitle').textContent = t(editing.id ? 'editTitle' : 'addTitle');
   for (const f of [uf, pf]) syncUserFormTexts(f);
   $('userEditorTitle').textContent = t(uf.editing ? 'editUser' : 'addUser');

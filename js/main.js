@@ -1,5 +1,7 @@
 // ---------- Start ----------
-applyLang();
-applyTheme();
-render();
-checkStatus();
+initAuth().finally(() => {
+  applyLang();
+  applyTheme();
+  render();
+  checkStatus();
+});
