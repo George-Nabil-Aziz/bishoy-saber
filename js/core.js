@@ -1,5 +1,5 @@
 const USER = { email: 'bishoy.saber@gmail.com', password: '123456789' };
-const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { db: { schema: 'bishoy_saber_notes' } });
 const $ = (id) => document.getElementById(id);
 // Tiny element builder: el('span', 'cls', 'text')
 const el = (tag, cls, text) => {

@@ -14,4 +14,5 @@ jobs:
         run: |
           curl -sf "https://kvnvyxpnaogekbmelnug.supabase.co/rest/v1/entries?select=id&limit=1" \
             -H "apikey: sb_publishable_16L7jf6nP8n3a8twcv_bMQ_04YZALky" \
-            -H "Authorization: Bearer sb_publishable_16L7jf6nP8n3a8twcv_bMQ_04YZALky"
+            -H "Authorization: Bearer sb_publishable_16L7jf6nP8n3a8twcv_bMQ_04YZALky" \
+            -H "Accept-Profile: bishoy_saber_notes"
