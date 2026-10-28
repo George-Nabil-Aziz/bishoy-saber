@@ -1,7 +1,7 @@
 -- Run in Supabase Dashboard → SQL Editor (safe to run more than once)
 -- This file describes the final state. Sign-in is Supabase Auth: before the first run create the owner in
 -- Authentication → Users (bishoy.saber@gmail.com, auto confirm) so the owner row gets linked to it.
--- The edge function supabase/functions/admin-users handles adding, deleting and editing other users.
+-- The edge function supabase/functions/bishoy-saber-notes-admin-users handles adding, deleting and editing other users.
 
 -- Tables live in their own schema (the project shares Supabase with another app).
 -- Add it in Dashboard → Project Settings → Data API → Exposed schemas.

@@ -1,5 +1,5 @@
-// Edge function "admin-users": lets an admin add, edit and delete users (login + users row together).
-// Deploy: Dashboard -> Edge Functions -> admin-users (keep "Verify JWT" on). SUPABASE_URL and
+// Edge function "bishoy-saber-notes-admin-users": lets an admin add, edit and delete users (login + users row together).
+// Deploy: Dashboard -> Edge Functions -> bishoy-saber-notes-admin-users (keep "Verify JWT" on). SUPABASE_URL and
 // SUPABASE_SERVICE_ROLE_KEY are provided by Supabase automatically.
 // Body: { action: 'create' | 'update' | 'delete', ... }
 import { createClient } from 'npm:@supabase/supabase-js@2';

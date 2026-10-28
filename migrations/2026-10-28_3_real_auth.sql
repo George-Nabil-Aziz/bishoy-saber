@@ -1,7 +1,7 @@
 -- Step 4: real sign-in with Supabase Auth. Run in SQL Editor (safe to run more than once).
 -- BEFORE running: Dashboard -> Authentication -> Users -> Add user for bishoy.saber@gmail.com
 -- (tick "Auto Confirm User") so the owner row below gets linked to it.
--- AFTER running: deploy the edge function "admin-users" (supabase/functions/admin-users/index.ts).
+-- AFTER running: deploy the edge function "bishoy-saber-notes-admin-users" (supabase/functions/bishoy-saber-notes-admin-users/index.ts).
 -- Other existing users: an admin opens them in the app (Users -> Edit) and sets a password; that creates their login.
 --
 -- What changes: the "anon" key can no longer touch any table or bucket; only signed-in members can.

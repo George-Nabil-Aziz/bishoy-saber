@@ -99,9 +99,9 @@ function removeImage(bucket, url) {
 // ---------- Applying an operation to the server ----------
 const must = ({ data, error }) => { if (error) throw error; return data; };
 const conflict = (reason, server) => Object.assign(new Error('conflict'), { conflict: reason, server });
-// Add / edit / delete another user: edge function "admin-users" (creates the login too)
+// Add / edit / delete another user: edge function "bishoy-saber-notes-admin-users" (creates the login too)
 async function adminCall(action, body) {
-  const { data, error } = await db.functions.invoke('admin-users', { body: { action, ...body } });
+  const { data, error } = await db.functions.invoke('bishoy-saber-notes-admin-users', { body: { action, ...body } });
   if (!error) return data;
   if (error.name === 'FunctionsFetchError') throw new Error('Failed to fetch');
   let j = null;
