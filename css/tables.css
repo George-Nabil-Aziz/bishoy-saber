@@ -9,6 +9,8 @@ th { font-size: 13px; color: var(--muted); font-weight: 700; background: var(--i
 tbody tr + tr td { border-top: 1px solid var(--border); }
 tbody tr:hover { background: var(--surface-hover); }
 td.num { direction: ltr; text-align: start; }
+td .email-cell { display: flex; align-items: center; gap: 8px; }
+td .email-cell .clip { min-width: 0; }
 td .clip { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 td.actions, th.actions { width: 1%; white-space: nowrap; }
 td.actions > div { display: flex; gap: 6px; }

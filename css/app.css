@@ -29,6 +29,9 @@ main .card.wide { max-width: 1040px; }
 }
 .icon-btn.edit:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
 .icon-btn.del:hover, .icon-btn.del.confirm { color: var(--err); border-color: var(--err); background: var(--err-soft); }
+.icon-btn.copy { height: 28px; min-width: 28px; padding: 0 6px; flex-shrink: 0; }
+.icon-btn.copy svg { width: 15px; height: 15px; }
+.icon-btn.copy:hover { color: var(--primary); border-color: var(--primary); background: var(--primary-soft); }
 .icon-btn:disabled { opacity: .35; cursor: not-allowed; pointer-events: none; }
 
 /* Password eye */

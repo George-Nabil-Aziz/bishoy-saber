@@ -150,7 +150,11 @@ async function loadUsers() {
       if (u._pending) s.append(pendingBadge());
       return s;
     } },
-    { h: 'email', cell: (u) => el('span', 'clip', u.email) },
+    { h: 'email', cell: (u) => {
+      const s = el('span', 'email-cell');
+      s.append(el('span', 'clip', u.email), iconBtn('copy', 'copyEmail', 'copy', () => copyText(u.email)));
+      return s;
+    } },
     { h: 'role', cell: (u) => {
       const admin = u.role === 'admin' || isOwner(u.email);
       return el('span', 'badge' + (admin ? ' admin' : ''), t(admin ? 'roleAdmin' : 'roleUser'));
@@ -163,6 +167,10 @@ async function loadUsers() {
       return actions(iconLink('#/users/edit/' + u.id, 'edit', 'editBtn'), del);
     } },
   ], rows, 'noUsers'));
+}
+
+async function copyText(text) {
+  try { await navigator.clipboard.writeText(text); toast(t('copied'), 'ok'); } catch { toast(t('error') + text, 'err'); }
 }
 
 async function deleteUser(u, btn) {
